@@ -1,8 +1,30 @@
 import { Manifest } from "deno-slack-sdk/mod.ts";
+import ReservationsDatastore from "./datastores/reservations.ts";
+import WaitlistDatastore from "./datastores/waitlist.ts";
+import { CreateReservationDefinition } from "./functions/create_reservation.ts";
+import { ReleaseReservationDefinition } from "./functions/release_reservation.ts";
+import { ExtendReservationDefinition } from "./functions/extend_reservation.ts";
+import { GetStatusDefinition } from "./functions/get_status.ts";
+import { TickDefinition } from "./functions/tick.ts";
+import { ReserveWorkflow } from "./workflows/reserve.ts";
+import { ReleaseWorkflow } from "./workflows/release.ts";
+import { ExtendWorkflow } from "./workflows/extend.ts";
+import { StatusWorkflow } from "./workflows/status.ts";
+import { TickWorkflow } from "./workflows/tick.ts";
 
 export default Manifest({
   name: "open-dibs-on-stuff",
   description: "Reserva de servicos em staging/production",
+  icon: "assets/icon.png",
+  datastores: [ReservationsDatastore, WaitlistDatastore],
+  functions: [
+    CreateReservationDefinition,
+    ReleaseReservationDefinition,
+    ExtendReservationDefinition,
+    GetStatusDefinition,
+    TickDefinition,
+  ],
+  workflows: [ReserveWorkflow, ReleaseWorkflow, ExtendWorkflow, StatusWorkflow, TickWorkflow],
   botScopes: [
     "chat:write",
     "chat:write.public",
@@ -11,8 +33,5 @@ export default Manifest({
     "triggers:write",
     "triggers:read",
   ],
-  functions: [],
-  workflows: [],
-  datastores: [],
   outgoingDomains: [],
 });
