@@ -1,5 +1,5 @@
 import { computeExpiresAt } from "./time.ts";
-import { BUSINESS_END_HOUR, type Reservation, TZ } from "./types.ts";
+import { BUSINESS_END_HOUR, REMINDER_MARKERS, type Reservation, TZ } from "./types.ts";
 
 export const EXTEND_SECONDS: Record<string, number> = {
   "30m": 30 * 60,
@@ -56,4 +56,52 @@ export function applyExtend(r: Reservation, extraSec: number, nowSec: number): R
   const expires_at = r.expires_at + extraSec;
   const reminders_sent = r.reminders_sent.filter((m) => expires_at - nowSec <= m * 60);
   return { ...r, expires_at, reminders_sent };
+}
+
+export const MIN_DELAY_SEC = 60;
+
+export function dueReminders(
+  expiresAt: number,
+  now: number,
+  remindersSent: number[],
+): number[] {
+  const remaining = expiresAt - now;
+  return REMINDER_MARKERS.filter(
+    (m) => remaining > 0 && remaining <= m * 60 && !remindersSent.includes(m),
+  );
+}
+
+export function nextEventDelaySec(
+  expiresAt: number,
+  now: number,
+  remindersSent: number[],
+): number | null {
+  if (now >= expiresAt) return null;
+  const candidates: number[] = [];
+  for (const m of REMINDER_MARKERS) {
+    if (!remindersSent.includes(m)) {
+      const t = expiresAt - m * 60;
+      if (t > now) candidates.push(t);
+    }
+  }
+  candidates.push(expiresAt);
+  return Math.max(MIN_DELAY_SEC, Math.min(...candidates) - now);
+}
+
+export type TickDecision =
+  | { kind: "stale" }
+  | { kind: "expire" }
+  | { kind: "remind"; markers: number[]; remindersSentAfter: number[]; nextDelaySec: number };
+
+export function decideTick(
+  r: Reservation | null,
+  token: string,
+  now: number,
+): TickDecision {
+  if (!r || r.token !== token) return { kind: "stale" };
+  if (now >= r.expires_at) return { kind: "expire" };
+  const markers = dueReminders(r.expires_at, now, r.reminders_sent);
+  const remindersSentAfter = [...r.reminders_sent, ...markers];
+  const nextDelaySec = nextEventDelaySec(r.expires_at, now, remindersSentAfter) ?? MIN_DELAY_SEC;
+  return { kind: "remind", markers, remindersSentAfter, nextDelaySec };
 }
