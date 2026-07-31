@@ -45,18 +45,16 @@ echo "Creating one shortcut per action. Copy each link below and pin it in the c
 echo "your team will use (Slack: pin a message with the link, or just share it)."
 echo
 
-declare -A trigger_labels=(
-  ["reserve_link.ts"]="Reserve"
-  ["release_link.ts"]="Release"
-  ["extend_link.ts"]="Extend"
-  ["status_link.ts"]="Status"
-)
-
-for file in reserve_link.ts release_link.ts extend_link.ts status_link.ts; do
-  echo "--- ${trigger_labels[$file]} ---"
-  slack trigger create --trigger-def "triggers/$file"
+create_trigger() {
+  echo "--- $2 ---"
+  slack trigger create --trigger-def "triggers/$1"
   echo
-done
+}
+
+create_trigger reserve_link.ts Reserve
+create_trigger release_link.ts Release
+create_trigger extend_link.ts Extend
+create_trigger status_link.ts Status
 
 cat <<'EOF'
 == Done ==
