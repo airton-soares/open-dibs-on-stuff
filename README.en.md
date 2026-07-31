@@ -10,6 +10,9 @@ development teams and IT folks in general share environments without stepping on
 Runs 100% on Slack's infrastructure (Run on Slack / ROSI): Slack hosts the code (Deno) and the
 database (Datastore), with no server or cloud cost of its own.
 
+**Just want to install it on your workspace, no code involved?** Go straight to the
+[installation guide](INSTALL.en.md).
+
 ## How it works
 
 Interaction happens through **link triggers** (shortcuts pinned in the channel) that open a form:

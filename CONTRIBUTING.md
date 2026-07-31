@@ -60,10 +60,9 @@ olhada no `git log` pra ver exemplos.
 Isso não é só estilo: o release em `main` é automatizado por
 [semantic-release](https://semantic-release.gitbook.io/), que lê esses prefixos pra decidir a
 próxima versão. `fix:` vira patch, `feat:` vira minor, e um rodapé `BREAKING CHANGE:` (ou `!` depois
-do tipo, tipo `feat!:`) vira major. Commit fora do padrão simplesmente não gera release. O
-changelog de cada versão fica na
-[aba Releases](https://github.com/airton-soares/open-dibs-on-stuff/releases) do GitHub, não em um
-arquivo no repo.
+do tipo, tipo `feat!:`) vira major. Commit fora do padrão simplesmente não gera release. O changelog
+de cada versão fica na [aba Releases](https://github.com/airton-soares/open-dibs-on-stuff/releases)
+do GitHub, não em um arquivo no repo.
 
 ## Pull requests
 

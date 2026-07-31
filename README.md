@@ -10,6 +10,9 @@ times de desenvolvimento e profissionais de TI em geral a organizar o uso coleti
 pisar no pé um do outro. Roda 100% na infraestrutura do Slack (Run on Slack / ROSI): o Slack hospeda
 o código (Deno) e o banco (Datastore), sem servidor nem custo de nuvem próprio.
 
+**Quer só instalar no seu workspace, sem mexer no código?** Vai direto pro
+[guia de instalação](INSTALL.md).
+
 ## Como funciona
 
 A interação é por **link triggers** (atalhos fixados no canal) que abrem um formulário:
