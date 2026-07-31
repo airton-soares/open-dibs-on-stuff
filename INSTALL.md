@@ -18,10 +18,20 @@ Leva uns 10 minutos.
 
 ## Opção 1: script automático
 
+Linux e macOS:
+
 ```sh
 git clone https://github.com/airton-soares/open-dibs-on-stuff.git
 cd open-dibs-on-stuff
 ./setup.sh
+```
+
+Windows (PowerShell):
+
+```powershell
+git clone https://github.com/airton-soares/open-dibs-on-stuff.git
+cd open-dibs-on-stuff
+.\setup.ps1
 ```
 
 O script confere os pré-requisitos, abre o login do Slack no navegador, faz o deploy e cria os 4
@@ -57,9 +67,14 @@ slack env add DIBS_BUSINESS_END_HOUR 18
 
 ## Problemas comuns
 
-- **`slack: command not found`**: instale o Slack CLI
-  (`curl -fsSL
-  https://downloads.slack-edge.com/slack-cli/install.sh | bash`).
+- **`slack: command not found`**: instale o Slack CLI. Linux/macOS:
+  `curl -fsSL
+  https://downloads.slack-edge.com/slack-cli/install.sh | bash`. Windows (PowerShell):
+  `irm
+  https://downloads.slack-edge.com/slack-cli/install-windows.ps1 | iex`.
+- **Windows recusa rodar `setup.ps1` (política de execução)**: rode
+  `powershell -ExecutionPolicy
+  Bypass -File .\setup.ps1` em vez de `.\setup.ps1` direto.
 - **Workspace sem Run on Slack**: peça pro admin do workspace habilitar, ou use um sandbox do
   [Slack Developer Program](https://api.slack.com/developer-program) pra testar sem custo.
 - **App parou de funcionar depois de mudar código**: rode `slack deploy` de novo e recrie os 4
