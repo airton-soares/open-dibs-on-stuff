@@ -25,6 +25,11 @@ if ! command -v deno >/dev/null 2>&1; then
 fi
 echo "- Deno: found ($(deno --version | head -n1))"
 
+# Corporate networks that intercept TLS re-sign HTTPS with a root CA that Deno's bundled store
+# doesn't trust, which breaks downloading the Slack SDK hooks (get-manifest -> runtime_not_found).
+# Trusting the OS store fixes it and is harmless on networks without interception.
+export DENO_TLS_CA_STORE=system
+
 echo
 echo "== Logging in to Slack =="
 echo "A browser window will open. Pick the workspace where you want to install the app."
