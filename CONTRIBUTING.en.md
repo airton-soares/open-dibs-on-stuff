@@ -60,9 +60,13 @@ This isn't just style: releases on `main` are automated by
 [semantic-release](https://semantic-release.gitbook.io/), which reads these prefixes to decide the
 next version. `fix:` bumps patch, `feat:` bumps minor, and a `BREAKING CHANGE:` footer (or `!` right
 after the type, like `feat!:`) bumps major. A commit outside this format just doesn't trigger a
-release. `CHANGELOG.md` is also generated from this history, so don't hand-edit it.
+release. Each version's changelog lives on the
+[Releases tab](https://github.com/airton-soares/open-dibs-on-stuff/releases) on GitHub, not in a
+file in the repo.
 
 ## Pull requests
+
+`main` is protected: no direct pushes, every change goes through a PR.
 
 - One PR per logical change; avoid mixing a refactor with a feature.
 - Describe what changed and why (the "why" matters more than the "what", which the diff already

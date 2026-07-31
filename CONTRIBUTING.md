@@ -61,9 +61,13 @@ Isso não é só estilo: o release em `main` é automatizado por
 [semantic-release](https://semantic-release.gitbook.io/), que lê esses prefixos pra decidir a
 próxima versão. `fix:` vira patch, `feat:` vira minor, e um rodapé `BREAKING CHANGE:` (ou `!` depois
 do tipo, tipo `feat!:`) vira major. Commit fora do padrão simplesmente não gera release. O
-`CHANGELOG.md` também é gerado a partir disso — não edite ele à mão.
+changelog de cada versão fica na
+[aba Releases](https://github.com/airton-soares/open-dibs-on-stuff/releases) do GitHub, não em um
+arquivo no repo.
 
 ## Pull requests
+
+`main` é protegida: não aceita push direto, toda mudança entra via PR.
 
 - Um PR por mudança lógica; evite misturar refactor com feature.
 - Descreva o que mudou e por quê (o "porquê" importa mais que o "o quê", que já dá pra ver no diff).
