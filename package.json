@@ -1,0 +1,12 @@
+{
+  "name": "open-dibs-on-stuff",
+  "private": true,
+  "version": "0.0.0-development",
+  "description": "Dev-only Node tooling for this repo's release pipeline. The app itself runs on Deno; see deno.jsonc.",
+  "devDependencies": {
+    "semantic-release": "^24.2.9",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6"
+  }
+}

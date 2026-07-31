@@ -1,5 +1,26 @@
-docs/superpowers/
-.claude/
-.tool-versions
-.slack/
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Editores
 .vscode/
+.idea/
+
+# Deno
+coverage/
+
+# Node (dev-only tooling: semantic-release)
+node_modules/
+
+# Slack CLI / Run on Slack
+.slack/
+
+# Variaveis de ambiente
+.env
+.env.local
+
+# Claude Code (arquivos/pastas gerados; CLAUDE.md fica versionado)
+.claude/
+.remember/
+docs/superpowers/
+CLAUDE.local.md
