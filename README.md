@@ -1,11 +1,14 @@
 # open-dibs-on-stuff
 
-App de Slack para reservar o uso de serviços em ambientes compartilhados (`development`, `staging`,
-`production`), com fila de espera, auto-expiração e lembretes. Roda 100% na infraestrutura do Slack
-(Run on Slack / ROSI): o Slack hospeda o código (Deno) e o banco (Datastore), sem servidor nem custo
-de nuvem próprio.
+[![CI](https://github.com/airton-soares/open-dibs-on-stuff/actions/workflows/ci.yml/badge.svg)](https://github.com/airton-soares/open-dibs-on-stuff/actions/workflows/ci.yml)
 
-Substitui o uso que o time fazia do `dibs-on-stuff` no canal `#dibs`.
+🇧🇷 Português | 🇺🇸 [English](README.en.md)
+
+App de Slack **open source** para reservar o uso de recursos compartilhados (serviços em ambientes
+de `development`, `staging` ou `production`), com fila de espera, auto-expiração e lembretes. Ajuda
+times de desenvolvimento e profissionais de TI em geral a organizar o uso coletivo de ambientes sem
+pisar no pé um do outro. Roda 100% na infraestrutura do Slack (Run on Slack / ROSI): o Slack hospeda
+o código (Deno) e o banco (Datastore), sem servidor nem custo de nuvem próprio.
 
 ## Como funciona
 
@@ -64,7 +67,8 @@ Rodar localmente (hot reload contra o Slack):
 slack run
 ```
 
-Criar os link triggers (copie o shortcut link retornado e fixe no canal `#dibs`):
+Criar os link triggers (copie o shortcut link retornado e fixe no canal onde o seu time vai usar o
+app):
 
 ```sh
 slack trigger create --trigger-def triggers/reserve_link.ts
