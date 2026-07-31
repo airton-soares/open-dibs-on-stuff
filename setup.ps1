@@ -25,6 +25,11 @@ if (-not (Get-Command deno -ErrorAction SilentlyContinue)) {
 }
 Write-Host "- Deno: found ($((deno --version | Select-Object -First 1)))"
 
+# Corporate networks that intercept TLS re-sign HTTPS with a root CA that Deno's bundled store
+# doesn't trust, which breaks downloading the Slack SDK hooks (get-manifest -> runtime_not_found).
+# Trusting the OS store fixes it and is harmless on networks without interception.
+$env:DENO_TLS_CA_STORE = "system"
+
 Write-Host ""
 Write-Host "== Logging in to Slack =="
 Write-Host "A browser window will open. Pick the workspace where you want to install the app."

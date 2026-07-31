@@ -74,6 +74,11 @@ slack env add DIBS_BUSINESS_END_HOUR 18
 - **Windows refuses to run `setup.ps1` (execution policy)**: run
   `powershell -ExecutionPolicy
   Bypass -File .\setup.ps1` instead of `.\setup.ps1` directly.
+- **`runtime_not_found` / `invalid peer certificate: UnknownIssuer` on deploy**: your network
+  intercepts TLS (a corporate proxy like Zscaler/Netskope) and Deno doesn't trust the CA that
+  re-signed HTTPS, so it can't download the SDK hooks. Run with the system store:
+  `DENO_TLS_CA_STORE=system slack deploy` (`setup.sh`/`setup.ps1` already do this). To make it
+  permanent, add `export DENO_TLS_CA_STORE=system` to your shell (`~/.zshrc`/`~/.bashrc`).
 - **Workspace doesn't have Run on Slack**: ask your workspace admin to enable it, or use a sandbox
   from the [Slack Developer Program](https://api.slack.com/developer-program) to try it for free.
 - **App stopped working after a code change**: run `slack deploy` again and recreate the 4 triggers
