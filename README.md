@@ -1,6 +1,7 @@
 # open-dibs-on-stuff
 
 [![CI](https://github.com/airton-soares/open-dibs-on-stuff/actions/workflows/ci.yml/badge.svg)](https://github.com/airton-soares/open-dibs-on-stuff/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/airton-soares/open-dibs-on-stuff)](https://github.com/airton-soares/open-dibs-on-stuff/releases/latest)
 
 🇧🇷 Português | 🇺🇸 [English](README.en.md)
 
