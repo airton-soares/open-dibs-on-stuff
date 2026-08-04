@@ -27,7 +27,8 @@ A interação é por **link triggers** (atalhos fixados no canal) que abrem um f
 - **Estender**: serviço + ambiente + tempo extra (+30m, +1h, +2h). Só o dono.
 - **Sair da fila**: serviço + ambiente. Tira você da fila daquele recurso; a confirmação é efêmera
   (só você vê). Se você não estiver na fila, o app só avisa isso.
-- **Status**: lista o que está reservado, por quem, até quando, e as filas.
+- **Status**: lista o que está reservado, por quem e até quando; abaixo de cada recurso mostra o
+  tamanho da fila e quem está nela, na ordem de chegada (ou "fila vazia").
 
 O recurso é identificado por `serviço-sufixo`, onde o sufixo é `dev`, `stg` ou `prod` (ex:
 `cards-stg`, `billing-prod`).

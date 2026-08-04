@@ -63,5 +63,7 @@ export const ptBR = {
   "msg.status.empty": ":white_check_mark: Nenhum recurso reservado agora.",
   "msg.status.header": ":clipboard: *Reservas ativas*",
   "msg.status.line": "- *{resource}*: <@{owner}> até {when}{queue}",
-  "msg.status.queue": " | fila: {users}",
+  "msg.status.queue": "\n   :busts_in_silhouette: fila ({count}): {users}",
+  "msg.status.queue.empty": "\n   :busts_in_silhouette: fila vazia",
+  "msg.status.queue.entry": "{position}. <@{user}>",
 } as const;
