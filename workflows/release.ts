@@ -20,7 +20,7 @@ const form = ReleaseWorkflow.addStep(Schema.slack.functions.OpenForm, {
   submit_label: "Liberar",
   fields: {
     elements: [
-      { name: "service", title: "Servico", type: Schema.types.string },
+      { name: "service", title: "Serviço", type: Schema.types.string },
       {
         name: "environment",
         title: "Ambiente",

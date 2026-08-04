@@ -6,11 +6,32 @@ function when(epoch: number): string {
 
 export function reservedMsg(r: Reservation): string {
   const note = r.note ? ` (${r.note})` : "";
-  return `:lock: <@${r.owner}> reservou *${r.resource}* ate ${when(r.expires_at)}${note}.`;
+  return `:lock: <@${r.owner}> reservou *${r.resource}* até ${when(r.expires_at)}${note}.`;
 }
 
-export function enqueuedMsg(resource: string, user: string, position: number): string {
-  return `:hourglass_flowing_sand: <@${user}> entrou na fila de *${resource}* (posicao ${position}).`;
+function queuePosition(position: number, total: number): string {
+  return `sua posição é a ${position} em uma fila de tamanho ${total}`;
+}
+
+export function enqueuedMsg(
+  resource: string,
+  user: string,
+  position: number,
+  total: number,
+): string {
+  return `:hourglass_flowing_sand: <@${user}> entrou na fila de *${resource}* (${
+    queuePosition(position, total)
+  }).`;
+}
+
+export function alreadyOwnerMsg(resource: string): string {
+  return `:lock: Você já está com *${resource}* reservado, não precisa entrar na fila.`;
+}
+
+export function alreadyQueuedMsg(resource: string, position: number, total: number): string {
+  return `:hourglass_flowing_sand: Você já está na fila de *${resource}* (${
+    queuePosition(position, total)
+  }).`;
 }
 
 export function releasedMsg(resource: string, user: string): string {
@@ -22,7 +43,7 @@ export function expiredMsg(resource: string): string {
 }
 
 export function promotedMsg(r: Reservation): string {
-  return `:arrow_forward: <@${r.owner}> assumiu *${r.resource}* (da fila), ate ${
+  return `:arrow_forward: <@${r.owner}> assumiu *${r.resource}* (da fila), até ${
     when(r.expires_at)
   }.`;
 }
@@ -33,7 +54,7 @@ export function reminderMsg(r: Reservation, marker: number): string {
 }
 
 export function extendedMsg(r: Reservation): string {
-  return `:heavy_plus_sign: <@${r.owner}> estendeu *${r.resource}* ate ${when(r.expires_at)}.`;
+  return `:heavy_plus_sign: <@${r.owner}> estendeu *${r.resource}* até ${when(r.expires_at)}.`;
 }
 
 export function notOwnerMsg(resource: string): string {
@@ -41,7 +62,7 @@ export function notOwnerMsg(resource: string): string {
 }
 
 export function notFoundMsg(resource: string): string {
-  return `:grey_question: Nao ha reserva ativa para *${resource}*.`;
+  return `:grey_question: Não há reserva ativa para *${resource}*.`;
 }
 
 export function statusMsg(
@@ -55,7 +76,7 @@ export function statusMsg(
     .map((r) => {
       const q = queues[r.resource] ?? [];
       const fila = q.length ? ` | fila: ${q.map((e) => `<@${e.user}>`).join(", ")}` : "";
-      return `- *${r.resource}*: <@${r.owner}> ate ${when(r.expires_at)}${fila}`;
+      return `- *${r.resource}*: <@${r.owner}> até ${when(r.expires_at)}${fila}`;
     });
   return `:clipboard: *Reservas ativas*\n${lines.join("\n")}`;
 }

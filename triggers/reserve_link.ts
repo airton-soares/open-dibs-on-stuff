@@ -5,7 +5,7 @@ import { ReserveWorkflow } from "../workflows/reserve.ts";
 const trigger: Trigger<typeof ReserveWorkflow.definition> = {
   type: TriggerTypes.Shortcut,
   name: "Reservar recurso",
-  description: "Reserva um servico em staging/production",
+  description: "Reserva um serviço em staging/production",
   workflow: "#/workflows/reserve_workflow",
   inputs: {
     interactivity: { value: TriggerContextData.Shortcut.interactivity },

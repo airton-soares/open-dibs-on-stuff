@@ -96,5 +96,5 @@ Deno.test("recurso inexistente avisa", async () => {
     requester: "U2",
     channel: "C1",
   }, { nowSec: 1000, genId: () => "x", config });
-  assertStringIncludes(posts[0], "Nao ha reserva");
+  assertStringIncludes(posts[0], "Não há reserva");
 });

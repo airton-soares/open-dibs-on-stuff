@@ -20,7 +20,7 @@ const form = ReserveWorkflow.addStep(Schema.slack.functions.OpenForm, {
   submit_label: "Reservar",
   fields: {
     elements: [
-      { name: "service", title: "Servico", type: Schema.types.string },
+      { name: "service", title: "Serviço", type: Schema.types.string },
       {
         name: "environment",
         title: "Ambiente",
@@ -34,7 +34,7 @@ const form = ReserveWorkflow.addStep(Schema.slack.functions.OpenForm, {
       },
       {
         name: "duration",
-        title: "Duracao",
+        title: "Duração",
         type: Schema.types.string,
         enum: ["30m", "1h", "2h", "4h", "eob"],
         choices: [
@@ -42,7 +42,7 @@ const form = ReserveWorkflow.addStep(Schema.slack.functions.OpenForm, {
           { value: "1h", title: "1 hora" },
           { value: "2h", title: "2 horas" },
           { value: "4h", title: "4 horas" },
-          { value: "eob", title: "Ate o fim do expediente" },
+          { value: "eob", title: "Até o fim do expediente" },
         ],
         default: "2h",
       },

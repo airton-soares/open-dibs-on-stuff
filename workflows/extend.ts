@@ -20,7 +20,7 @@ const form = ExtendWorkflow.addStep(Schema.slack.functions.OpenForm, {
   submit_label: "Estender",
   fields: {
     elements: [
-      { name: "service", title: "Servico", type: Schema.types.string },
+      { name: "service", title: "Serviço", type: Schema.types.string },
       {
         name: "environment",
         title: "Ambiente",

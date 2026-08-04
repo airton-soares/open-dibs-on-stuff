@@ -5,7 +5,7 @@ import { ReleaseWorkflow } from "../workflows/release.ts";
 const trigger: Trigger<typeof ReleaseWorkflow.definition> = {
   type: TriggerTypes.Shortcut,
   name: "Liberar recurso",
-  description: "Libera uma reserva sua de um servico",
+  description: "Libera uma reserva sua de um serviço",
   workflow: "#/workflows/release_workflow",
   inputs: {
     interactivity: { value: TriggerContextData.Shortcut.interactivity },
