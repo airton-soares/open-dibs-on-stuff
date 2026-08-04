@@ -29,9 +29,11 @@ deno test --allow-read functions/internals/domain_reserve_test.ts
 CI (GitHub Actions) runs, in this order: `deno fmt --check`, `deno lint`,
 `deno check manifest.ts triggers/*.ts`, `deno test --allow-read`.
 
-Local dev (hot reload against real Slack): `slack run`. Deploy: `slack deploy`. After adding a new
-function, workflow, or trigger, recreate the link triggers with
-`slack trigger create --trigger-def triggers/<x>_link.ts`, both locally and again after deploy.
+Local dev (hot reload against real Slack): `slack run`. Deploy: `slack deploy --hide-triggers`
+followed by a trigger sync — or just `./setup.sh` (`setup.ps1` on Windows), which does both and is
+safe to re-run. The sync updates existing triggers in place (`slack trigger update`) so the pinned
+shortcut links survive a redeploy; plain `slack trigger create` on an already-installed app produces
+a duplicate shortcut instead.
 
 ## Architecture: pure core + thin shell
 
