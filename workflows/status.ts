@@ -5,11 +5,15 @@ export const StatusWorkflow = DefineWorkflow({
   callback_id: "status_workflow",
   title: "Status das reservas",
   input_parameters: {
-    properties: { channel: { type: Schema.slack.types.channel_id } },
-    required: ["channel"],
+    properties: {
+      channel: { type: Schema.slack.types.channel_id },
+      user: { type: Schema.slack.types.user_id },
+    },
+    required: ["channel", "user"],
   },
 });
 
 StatusWorkflow.addStep(GetStatusDefinition, {
   channel: StatusWorkflow.inputs.channel,
+  user: StatusWorkflow.inputs.user,
 });

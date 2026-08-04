@@ -2,6 +2,7 @@ import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { listReservations } from "./internals/reservations_repo.ts";
 import { queueFor } from "./internals/waitlist_repo.ts";
 import { statusMsg } from "./internals/messages.ts";
+import { assertOk } from "./internals/slack_api.ts";
 import type { WaitlistEntry } from "./internals/types.ts";
 
 export const GetStatusDefinition = DefineFunction({
@@ -9,8 +10,11 @@ export const GetStatusDefinition = DefineFunction({
   title: "Status das reservas",
   source_file: "functions/get_status.ts",
   input_parameters: {
-    properties: { channel: { type: Schema.slack.types.channel_id } },
-    required: ["channel"],
+    properties: {
+      channel: { type: Schema.slack.types.channel_id },
+      user: { type: Schema.slack.types.user_id },
+    },
+    required: ["channel", "user"],
   },
   output_parameters: {
     properties: { status: { type: Schema.types.string } },
@@ -18,15 +22,34 @@ export const GetStatusDefinition = DefineFunction({
   },
 });
 
+interface Inputs {
+  channel: string;
+  user: string;
+}
+
+// Unlike chat.postMessage, which reaches public channels through chat:write.public,
+// chat.postEphemeral only works in channels the app is a member of.
+const INVITE_HINT = "Convide o app no canal com /invite @open-dibs-on-stuff e tente de novo.";
+
 export async function handleGetStatus(
   // deno-lint-ignore no-explicit-any
   client: any,
-  inputs: { channel: string },
+  inputs: Inputs,
 ): Promise<{ status: string }> {
   const reservations = await listReservations(client);
   const queues: Record<string, WaitlistEntry[]> = {};
   for (const r of reservations) queues[r.resource] = await queueFor(client, r.resource);
-  await client.chat.postMessage({ channel: inputs.channel, text: statusMsg(reservations, queues) });
+
+  const res = await client.chat.postEphemeral({
+    channel: inputs.channel,
+    user: inputs.user,
+    text: statusMsg(reservations, queues),
+  });
+  assertOk(res, "chat.postEphemeral", {
+    channel_not_found: INVITE_HINT,
+    not_in_channel: INVITE_HINT,
+  });
+
   return { status: `${reservations.length} reservas` };
 }
 
@@ -34,7 +57,7 @@ export default SlackFunction(
   GetStatusDefinition,
   async ({ inputs, client }) => {
     try {
-      const status = await handleGetStatus(client, inputs as { channel: string });
+      const status = await handleGetStatus(client, inputs as Inputs);
       return { outputs: status };
     } catch (e) {
       return { error: `get_status falhou: ${e}`, outputs: { status: "erro" } };
