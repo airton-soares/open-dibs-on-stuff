@@ -11,5 +11,6 @@
     "fmt:check": "deno fmt --check"
   },
   "lock": false,
+  "nodeModulesDir": "auto",
   "fmt": { "semiColons": true, "lineWidth": 100 }
 }
