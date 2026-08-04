@@ -11,10 +11,11 @@ import {
 } from "./internals/messages.ts";
 import { assertOk, postEphemeral } from "./internals/slack_api.ts";
 import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
+import { t } from "./internals/i18n/mod.ts";
 
 export const CreateReservationDefinition = DefineFunction({
   callback_id: "create_reservation",
-  title: "Criar reserva",
+  title: t("fn.createReservation"),
   source_file: "functions/create_reservation.ts",
   input_parameters: {
     properties: {

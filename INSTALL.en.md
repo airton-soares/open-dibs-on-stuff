@@ -41,6 +41,11 @@ the existing shortcuts instead of creating new ones, so links already pinned in 
 working. Optional flags:
 
 - `--app <APP_ID>` (`-App` on PowerShell): pick the app when the Slack CLI knows more than one.
+- `--locale <CODE>` (`-Locale` on PowerShell): language of messages, forms and shortcut names.
+  Defaults to `pt-BR`, ships with `pt-BR` and `en`, and the value sticks between runs. Switching
+  later (`./setup.sh --locale en`) preserves pinned links: the script renames the existing shortcut
+  instead of creating another. To add a language, see
+  [CONTRIBUTING.en.md](CONTRIBUTING.en.md#adding-a-language).
 - `--yes` / `-y` (`-Yes` on PowerShell): delete duplicate shortcuts without asking.
 
 ## Option 2: manual steps

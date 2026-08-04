@@ -1,9 +1,10 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
 import { CreateReservationDefinition } from "../functions/create_reservation.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 export const ReserveWorkflow = DefineWorkflow({
   callback_id: "reserve_workflow",
-  title: "Reservar recurso",
+  title: t("action.reserve"),
   input_parameters: {
     properties: {
       interactivity: { type: Schema.slack.types.interactivity },
@@ -15,15 +16,15 @@ export const ReserveWorkflow = DefineWorkflow({
 });
 
 const form = ReserveWorkflow.addStep(Schema.slack.functions.OpenForm, {
-  title: "Reservar recurso",
+  title: t("action.reserve"),
   interactivity: ReserveWorkflow.inputs.interactivity,
-  submit_label: "Reservar",
+  submit_label: t("action.reserve.submit"),
   fields: {
     elements: [
-      { name: "service", title: "Serviço", type: Schema.types.string },
+      { name: "service", title: t("field.service"), type: Schema.types.string },
       {
         name: "environment",
-        title: "Ambiente",
+        title: t("field.environment"),
         type: Schema.types.string,
         enum: ["development", "staging", "production"],
         choices: [
@@ -34,19 +35,19 @@ const form = ReserveWorkflow.addStep(Schema.slack.functions.OpenForm, {
       },
       {
         name: "duration",
-        title: "Duração",
+        title: t("field.duration"),
         type: Schema.types.string,
         enum: ["30m", "1h", "2h", "4h", "eob"],
         choices: [
-          { value: "30m", title: "30 min" },
-          { value: "1h", title: "1 hora" },
-          { value: "2h", title: "2 horas" },
-          { value: "4h", title: "4 horas" },
-          { value: "eob", title: "Até o fim do expediente" },
+          { value: "30m", title: t("duration.30m") },
+          { value: "1h", title: t("duration.1h") },
+          { value: "2h", title: t("duration.2h") },
+          { value: "4h", title: t("duration.4h") },
+          { value: "eob", title: t("duration.eob") },
         ],
         default: "2h",
       },
-      { name: "note", title: "Nota (opcional)", type: Schema.types.string, long: true },
+      { name: "note", title: t("field.note"), type: Schema.types.string, long: true },
     ],
     required: ["service", "environment", "duration"],
   },

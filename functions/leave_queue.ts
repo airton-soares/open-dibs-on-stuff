@@ -3,10 +3,11 @@ import { resourceKey } from "./internals/domain.ts";
 import { dequeue, queueFor } from "./internals/waitlist_repo.ts";
 import { leftQueueMsg, notInQueueMsg } from "./internals/messages.ts";
 import { postEphemeral } from "./internals/slack_api.ts";
+import { t } from "./internals/i18n/mod.ts";
 
 export const LeaveQueueDefinition = DefineFunction({
   callback_id: "leave_queue",
-  title: "Sair da fila",
+  title: t("fn.leaveQueue"),
   source_file: "functions/leave_queue.ts",
   input_parameters: {
     properties: {

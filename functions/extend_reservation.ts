@@ -10,10 +10,11 @@ import { getReservation, putReservation } from "./internals/reservations_repo.ts
 import { cancelTrigger, scheduleTick } from "./internals/scheduling.ts";
 import { extendedMsg, notFoundMsg, notOwnerMsg } from "./internals/messages.ts";
 import { assertOk } from "./internals/slack_api.ts";
+import { t } from "./internals/i18n/mod.ts";
 
 export const ExtendReservationDefinition = DefineFunction({
   callback_id: "extend_reservation",
-  title: "Estender reserva",
+  title: t("fn.extendReservation"),
   source_file: "functions/extend_reservation.ts",
   input_parameters: {
     properties: {

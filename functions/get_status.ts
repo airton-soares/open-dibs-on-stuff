@@ -4,10 +4,11 @@ import { queueFor } from "./internals/waitlist_repo.ts";
 import { statusMsg } from "./internals/messages.ts";
 import { postEphemeral } from "./internals/slack_api.ts";
 import type { WaitlistEntry } from "./internals/types.ts";
+import { t } from "./internals/i18n/mod.ts";
 
 export const GetStatusDefinition = DefineFunction({
   callback_id: "get_status",
-  title: "Status das reservas",
+  title: t("fn.getStatus"),
   source_file: "functions/get_status.ts",
   input_parameters: {
     properties: {

@@ -58,6 +58,28 @@ slack env add DIBS_TIMEZONE America/Sao_Paulo
 slack env add DIBS_BUSINESS_END_HOUR 18
 ```
 
+### Language
+
+The language is **not** an environment variable: it is picked at install time, through a single
+option on the setup script.
+
+```sh
+./setup.sh --locale en     # .\setup.ps1 -Locale en on Windows
+```
+
+The default is `pt-BR`, and the value sticks between runs (`./setup.sh` without the flag keeps
+whatever is set). A single constant (`functions/internals/i18n/locale.ts`) drives messages, form
+labels and shortcut names, so the app can't end up half-translated. Switching means running the
+setup again, because forms and shortcuts are resolved at deploy time — in exchange, there is no
+language env var to drift out of sync.
+
+Links already pinned in the channel keep working after a switch: the setup finds the installed
+shortcut by its name in any registered language and renames it in place instead of creating a second
+one.
+
+Available languages: `pt-BR`, `en`. Adding yours is one file plus one line — see
+[CONTRIBUTING.en.md](CONTRIBUTING.en.md#adding-a-language).
+
 ## Prerequisites
 
 - [Deno](https://deno.com/) 2.x. Recommended via [asdf](https://asdf-vm.com/):
@@ -120,8 +142,10 @@ slack.json             # Slack CLI hooks
 datastores/            # reservations (PK resource) and waitlist (PK id)
 functions/             # custom functions (thin shells) + co-located tests
   internals/           # pure domain core + IO (tested without network)
-workflows/             # reserve, release, extend, status, tick
+    i18n/locales/      # message catalogs (pt-BR is the reference for the key set)
+workflows/             # reserve, release, extend, leave_queue, status, tick
 triggers/              # link triggers for the shortcuts
+scripts/               # helpers used by the setup script (shortcut name per language)
 assets/icon.png        # app icon (referenced by the manifest)
 assets/icon.svg        # vector source for the icon
 ```

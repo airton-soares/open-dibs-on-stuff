@@ -1,9 +1,10 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
 import { ReleaseReservationDefinition } from "../functions/release_reservation.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 export const ReleaseWorkflow = DefineWorkflow({
   callback_id: "release_workflow",
-  title: "Liberar recurso",
+  title: t("action.release"),
   input_parameters: {
     properties: {
       interactivity: { type: Schema.slack.types.interactivity },
@@ -15,15 +16,15 @@ export const ReleaseWorkflow = DefineWorkflow({
 });
 
 const form = ReleaseWorkflow.addStep(Schema.slack.functions.OpenForm, {
-  title: "Liberar recurso",
+  title: t("action.release"),
   interactivity: ReleaseWorkflow.inputs.interactivity,
-  submit_label: "Liberar",
+  submit_label: t("action.release.submit"),
   fields: {
     elements: [
-      { name: "service", title: "Serviço", type: Schema.types.string },
+      { name: "service", title: t("field.service"), type: Schema.types.string },
       {
         name: "environment",
-        title: "Ambiente",
+        title: t("field.environment"),
         type: Schema.types.string,
         enum: ["development", "staging", "production"],
         choices: [

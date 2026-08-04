@@ -42,6 +42,11 @@ atalhos existentes em vez de criar novos, então os links já fixados no canal c
 Flags opcionais:
 
 - `--app <APP_ID>` (`-App` no PowerShell): escolhe o app quando o Slack CLI conhece mais de um.
+- `--locale <CÓDIGO>` (`-Locale` no PowerShell): idioma de mensagem, formulário e nome de atalho.
+  Default `pt-BR`, disponíveis `pt-BR` e `en`, e o valor fica guardado entre execuções. Trocar
+  depois (`./setup.sh --locale en`) preserva os links fixados: o script renomeia o atalho existente
+  em vez de criar outro. Pra adicionar um idioma, veja
+  [CONTRIBUTING.md](CONTRIBUTING.md#adicionando-um-idioma).
 - `--yes` / `-y` (`-Yes` no PowerShell): apaga atalhos duplicados sem perguntar.
 
 ## Opção 2: passo a passo manual

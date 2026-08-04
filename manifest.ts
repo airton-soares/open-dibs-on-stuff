@@ -13,10 +13,11 @@ import { ExtendWorkflow } from "./workflows/extend.ts";
 import { StatusWorkflow } from "./workflows/status.ts";
 import { LeaveQueueWorkflow } from "./workflows/leave_queue.ts";
 import { TickWorkflow } from "./workflows/tick.ts";
+import { t } from "./functions/internals/i18n/mod.ts";
 
 export default Manifest({
   name: "open-dibs-on-stuff",
-  description: "Reserva de servicos em staging/production",
+  description: t("app.description"),
   icon: "assets/icon.png",
   datastores: [ReservationsDatastore, WaitlistDatastore],
   functions: [

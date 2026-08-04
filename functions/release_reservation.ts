@@ -6,10 +6,11 @@ import { promoteNext } from "./internals/promote.ts";
 import { notFoundMsg, notOwnerMsg, releasedMsg } from "./internals/messages.ts";
 import { assertOk } from "./internals/slack_api.ts";
 import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
+import { t } from "./internals/i18n/mod.ts";
 
 export const ReleaseReservationDefinition = DefineFunction({
   callback_id: "release_reservation",
-  title: "Liberar reserva",
+  title: t("fn.releaseReservation"),
   source_file: "functions/release_reservation.ts",
   input_parameters: {
     properties: {

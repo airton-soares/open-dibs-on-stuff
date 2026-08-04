@@ -1,11 +1,12 @@
 import { Trigger } from "deno-slack-sdk/types.ts";
 import { TriggerContextData, TriggerTypes } from "deno-slack-api/mod.ts";
 import { ReleaseWorkflow } from "../workflows/release.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 const trigger: Trigger<typeof ReleaseWorkflow.definition> = {
   type: TriggerTypes.Shortcut,
-  name: "Liberar recurso",
-  description: "Libera uma reserva sua de um serviço",
+  name: t("action.release"),
+  description: t("action.release.description"),
   workflow: "#/workflows/release_workflow",
   inputs: {
     interactivity: { value: TriggerContextData.Shortcut.interactivity },

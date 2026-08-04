@@ -1,9 +1,10 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
 import { LeaveQueueDefinition } from "../functions/leave_queue.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 export const LeaveQueueWorkflow = DefineWorkflow({
   callback_id: "leave_queue_workflow",
-  title: "Sair da fila",
+  title: t("action.leaveQueue"),
   input_parameters: {
     properties: {
       interactivity: { type: Schema.slack.types.interactivity },
@@ -15,15 +16,15 @@ export const LeaveQueueWorkflow = DefineWorkflow({
 });
 
 const form = LeaveQueueWorkflow.addStep(Schema.slack.functions.OpenForm, {
-  title: "Sair da fila",
+  title: t("action.leaveQueue"),
   interactivity: LeaveQueueWorkflow.inputs.interactivity,
-  submit_label: "Sair da fila",
+  submit_label: t("action.leaveQueue.submit"),
   fields: {
     elements: [
-      { name: "service", title: "Serviço", type: Schema.types.string },
+      { name: "service", title: t("field.service"), type: Schema.types.string },
       {
         name: "environment",
-        title: "Ambiente",
+        title: t("field.environment"),
         type: Schema.types.string,
         enum: ["development", "staging", "production"],
         choices: [

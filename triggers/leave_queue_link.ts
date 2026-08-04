@@ -1,11 +1,12 @@
 import { Trigger } from "deno-slack-sdk/types.ts";
 import { TriggerContextData, TriggerTypes } from "deno-slack-api/mod.ts";
 import { LeaveQueueWorkflow } from "../workflows/leave_queue.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 const trigger: Trigger<typeof LeaveQueueWorkflow.definition> = {
   type: TriggerTypes.Shortcut,
-  name: "Sair da fila",
-  description: "Tira você da fila de espera de um serviço",
+  name: t("action.leaveQueue"),
+  description: t("action.leaveQueue.description"),
   workflow: "#/workflows/leave_queue_workflow",
   inputs: {
     interactivity: { value: TriggerContextData.Shortcut.interactivity },

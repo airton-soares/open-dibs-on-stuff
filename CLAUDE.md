@@ -61,7 +61,16 @@ Key modules in `functions/internals/`:
 - `config.ts`: `loadConfig` reads `DIBS_TIMEZONE`/`DIBS_BUSINESS_END_HOUR` from the `env` record the
   Slack runtime passes to each function, falling back to defaults. Never read `Deno.env` — ROSI runs
   functions without `--allow-env`.
-- `messages.ts`: builders for the text posted to Slack.
+- `messages.ts`: builders for the text posted to Slack, on top of the `i18n` catalog. Every builder
+  takes an optional trailing `locale`, defaulting to the installation's `LOCALE`, so tests can
+  assert any language without touching the constant.
+- `i18n/`: the message catalogs. `locales/pt-BR.ts` is the reference catalog and defines the key
+  set; `catalog.ts` derives `MessageKey`/`Catalog` from it, so annotating a translation with
+  `Catalog` makes `deno check` reject a missing, extra, or misspelled key. `registry.ts` maps locale
+  code → catalog (one import plus one line to add a language) and derives the `Locale` union from
+  it. `locale.ts` holds the single `LOCALE` constant, rewritten by `./setup.sh --locale <code>`.
+  `mod.ts` exposes `t(key, params?, locale?)`, interpolating `{name}` placeholders and falling back
+  to `pt-BR` for a key a translation is missing.
 - `reservations_repo.ts` / `waitlist_repo.ts`: CRUD wrappers over the Datastore (reservations: PK
   `resource`; waitlist: PK `id`).
 
@@ -79,6 +88,23 @@ invalidate old triggers once the state changes, such as after an extend or a rel
 
 Resource identification: `service-suffix`, where suffix is one of `dev`, `stg`, or `prod`, mapped
 through `ENV_SHORT` in `domain.ts` (e.g. `cards-stg`, `billing-prod`).
+
+### Language
+
+Deliberately _not_ an env var: the locale is baked in at deploy time by a single constant in
+`i18n/locale.ts`, which `./setup.sh --locale <code>` rewrites before deploying. Messages resolve it
+at runtime, while form labels (`workflows/*.ts`) and shortcut names/descriptions (`triggers/*.ts`)
+are frozen into the manifest and the trigger objects, so one build-time source is what keeps all
+three in the same language. Switching therefore requires re-running the setup.
+
+Because shortcut names come from the catalog, `setup.sh` can no longer read them out of the trigger
+file with `sed`. It asks `scripts/trigger_names.ts` instead, which prints the name in every
+registered locale (current one first); the sync matches the installed shortcut against any of them,
+so a language switch renames it in place and the pinned link survives. Renaming a shortcut by hand
+in Slack does break that match and produces a duplicate on the next sync.
+
+Adding a language is one catalog file plus one line in `registry.ts` — see the "Adding a language"
+section in `CONTRIBUTING.md`.
 
 ## Configuration (ROSI env vars, with defaults)
 

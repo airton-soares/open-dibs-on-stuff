@@ -74,6 +74,14 @@ Deno.test("statusMsg lista reservas e diz quando nao ha nada", () => {
   assertStringIncludes(statusMsg([res()], {}), "cards-stg");
 });
 
+Deno.test("as mensagens saem no idioma pedido", () => {
+  assertStringIncludes(enqueuedMsg("cards-stg", "U2", 1, 2, "en"), "joined the queue");
+  assertStringIncludes(leftQueueMsg("cards-stg", "en"), "You left the queue");
+  assertStringIncludes(alreadyOwnerMsg("cards-stg", "en"), "You already hold");
+  assertStringIncludes(statusMsg([res()], {}, "en"), "Active reservations");
+  assertStringIncludes(reminderMsg(res(), 10, "en"), "expires in 10 min");
+});
+
 Deno.test("notOwnerMsg avisa que so o dono libera", () => {
   assertStringIncludes(notOwnerMsg("cards-stg"), "cards-stg");
 });

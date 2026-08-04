@@ -10,10 +10,11 @@ import { promoteNext } from "./internals/promote.ts";
 import { expiredMsg, reminderMsg } from "./internals/messages.ts";
 import { assertOk, postEphemeral } from "./internals/slack_api.ts";
 import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
+import { t } from "./internals/i18n/mod.ts";
 
 export const TickDefinition = DefineFunction({
   callback_id: "tick",
-  title: "Tick de reserva",
+  title: t("fn.tick"),
   source_file: "functions/tick.ts",
   input_parameters: {
     properties: {

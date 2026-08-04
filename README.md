@@ -57,6 +57,26 @@ slack env add DIBS_TIMEZONE America/Sao_Paulo
 slack env add DIBS_BUSINESS_END_HOUR 18
 ```
 
+### Idioma
+
+O idioma **não** é variável de ambiente: é escolhido na instalação, com uma opção única no setup.
+
+```sh
+./setup.sh --locale en     # .\setup.ps1 -Locale en no Windows
+```
+
+O default é `pt-BR`, e o valor fica guardado entre execuções (`./setup.sh` sem a flag mantém o que
+já está). Uma única constante (`functions/internals/i18n/locale.ts`) manda em mensagem, rótulo de
+formulário e nome de atalho, então não tem como o app ficar meio traduzido. Trocar exige rodar o
+setup de novo, porque formulário e atalho são resolvidos no deploy — em troca, não existe env var de
+idioma pra ficar fora de sincronia.
+
+Os links já fixados no canal continuam valendo depois de trocar: o setup encontra o atalho instalado
+pelo nome em qualquer idioma registrado e renomeia no lugar, em vez de criar um segundo.
+
+Idiomas disponíveis: `pt-BR`, `en`. Adicionar o seu é um arquivo mais uma linha — veja
+[CONTRIBUTING.md](CONTRIBUTING.md#adicionando-um-idioma).
+
 ## Pré-requisitos
 
 - [Deno](https://deno.com/) 2.x. Recomendado via [asdf](https://asdf-vm.com/):
@@ -119,8 +139,10 @@ slack.json             # hooks da Slack CLI
 datastores/            # reservations (PK resource) e waitlist (PK id)
 functions/             # custom functions (cascas finas) + testes co-localizados
   internals/           # nucleo puro de dominio + IO (testado sem rede)
-workflows/             # reserve, release, extend, status, tick
+    i18n/locales/      # catalogos de texto (pt-BR e a referencia das chaves)
+workflows/             # reserve, release, extend, leave_queue, status, tick
 triggers/              # link triggers dos atalhos
+scripts/               # utilitarios usados pelo setup (nome do atalho por idioma)
 assets/icon.png        # icone do app (usado pelo manifest)
 assets/icon.svg        # fonte vetorial do icone
 ```
