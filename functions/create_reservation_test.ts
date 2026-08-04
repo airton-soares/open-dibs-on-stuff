@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { handleCreateReservation } from "./create_reservation.ts";
+import { endOfBusinessDaySec } from "./internals/time.ts";
 
 const config = { tz: "America/Sao_Paulo", businessEndHour: 18 };
 
@@ -46,6 +47,36 @@ Deno.test("cria reserva quando o recurso esta livre", async () => {
   assertEquals(puts[0].owner, "U1");
   assertStringIncludes(posts[0], "reservou");
   assertStringIncludes(out.status, "cards-stg");
+});
+
+Deno.test("usa o env do contexto quando config nao e informado", async () => {
+  const { c, puts } = client();
+  await handleCreateReservation(c as any, {
+    service: "cards",
+    environment: "staging",
+    duration: "eob",
+    note: "",
+    owner: "U1",
+    channel: "C1",
+  }, {
+    nowSec: 1000,
+    genId: () => "tok",
+    env: { DIBS_TIMEZONE: "America/New_York", DIBS_BUSINESS_END_HOUR: "20" },
+  });
+  assertEquals(puts[0].expires_at, endOfBusinessDaySec(1000, "America/New_York", 20));
+});
+
+Deno.test("cai nos defaults quando o env do contexto vem vazio", async () => {
+  const { c, puts } = client();
+  await handleCreateReservation(c as any, {
+    service: "cards",
+    environment: "staging",
+    duration: "eob",
+    note: "",
+    owner: "U1",
+    channel: "C1",
+  }, { nowSec: 1000, genId: () => "tok", env: {} });
+  assertEquals(puts[0].expires_at, endOfBusinessDaySec(1000));
 });
 
 Deno.test("entra na fila quando ocupado", async () => {

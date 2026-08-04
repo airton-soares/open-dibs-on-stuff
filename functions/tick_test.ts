@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { handleTick } from "./tick.ts";
+import { endOfBusinessDaySec } from "./internals/time.ts";
 
 const config = { tz: "America/Sao_Paulo", businessEndHour: 18 };
 
@@ -85,6 +86,18 @@ Deno.test("tick expira e promove", async () => {
   assertEquals(deletes.includes("cards-stg"), true);
   assertStringIncludes(posts.join("\n"), "expirou");
   assertStringIncludes(posts.join("\n"), "assumiu");
+});
+
+Deno.test("promocao no tick usa o env do contexto quando config nao e informado", async () => {
+  const q = [{ id: "w1", resource: "cards-stg", user: "U2", requested_at: 10 }];
+  const { c, puts } = client(res({ expires_at: 100 }), q);
+  await handleTick(c as any, { resource: "cards-stg", token: "tok", channel: "C1" }, {
+    nowSec: 100,
+    genId: () => "id2",
+    env: { DIBS_TIMEZONE: "America/New_York", DIBS_BUSINESS_END_HOUR: "20" },
+  });
+  assertEquals(puts[0].owner, "U2");
+  assertEquals(puts[0].expires_at, endOfBusinessDaySec(100, "America/New_York", 20));
 });
 
 Deno.test("tick envia lembrete e reagenda", async () => {

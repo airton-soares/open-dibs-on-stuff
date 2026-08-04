@@ -56,8 +56,9 @@ Key modules in `functions/internals/`:
   `once` triggers rescheduled in a chain (see "Tick cycle" below).
 - `promote.ts`: `promoteNext` dequeues the next person in the waitlist and creates a new reservation
   for them, valid until end of business day.
-- `config.ts`: `loadConfig` reads `DIBS_TIMEZONE`/`DIBS_BUSINESS_END_HOUR` from the environment,
-  falling back to defaults.
+- `config.ts`: `loadConfig` reads `DIBS_TIMEZONE`/`DIBS_BUSINESS_END_HOUR` from the `env` record the
+  Slack runtime passes to each function, falling back to defaults. Never read `Deno.env` — ROSI runs
+  functions without `--allow-env`.
 - `messages.ts`: builders for the text posted to Slack.
 - `reservations_repo.ts` / `waitlist_repo.ts`: CRUD wrappers over the Datastore (reservations: PK
   `resource`; waitlist: PK `id`).

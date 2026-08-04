@@ -1,12 +1,14 @@
 // deno-lint-ignore-file no-explicit-any
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { handleReleaseReservation } from "./release_reservation.ts";
+import { endOfBusinessDaySec } from "./internals/time.ts";
 
 const config = { tz: "America/Sao_Paulo", businessEndHour: 18 };
 
 function client(existing: any, queue: any[] = []) {
   const posts: string[] = [];
   const deletes: string[] = [];
+  const puts: any[] = [];
   const c = {
     apps: {
       datastore: {
@@ -15,7 +17,10 @@ function client(existing: any, queue: any[] = []) {
             ok: true,
             item: existing && existing.resource === a.id ? existing : {},
           }),
-        put: () => Promise.resolve({ ok: true }),
+        put: (a: any) => {
+          puts.push(a.item);
+          return Promise.resolve({ ok: true });
+        },
         delete: (a: any) => {
           deletes.push(a.id);
           return Promise.resolve({ ok: true });
@@ -36,7 +41,7 @@ function client(existing: any, queue: any[] = []) {
       },
     },
   };
-  return { c, posts, deletes };
+  return { c, posts, deletes, puts };
 }
 
 Deno.test("dono libera o recurso", async () => {
@@ -63,6 +68,24 @@ Deno.test("nao-dono nao libera", async () => {
     channel: "C1",
   }, { nowSec: 1000, genId: () => "x", config });
   assertStringIncludes(posts[0], "Apenas quem reservou");
+});
+
+Deno.test("promocao usa o env do contexto quando config nao e informado", async () => {
+  const r = { resource: "cards-stg", owner: "U1", token: "t", pending_trigger_id: "T1" };
+  const q = [{ id: "w1", resource: "cards-stg", user: "U2", requested_at: 10 }];
+  const { c, puts } = client(r, q);
+  await handleReleaseReservation(c as any, {
+    service: "cards",
+    environment: "staging",
+    requester: "U1",
+    channel: "C1",
+  }, {
+    nowSec: 1000,
+    genId: () => "x",
+    env: { DIBS_TIMEZONE: "America/New_York", DIBS_BUSINESS_END_HOUR: "20" },
+  });
+  assertEquals(puts[0].owner, "U2");
+  assertEquals(puts[0].expires_at, endOfBusinessDaySec(1000, "America/New_York", 20));
 });
 
 Deno.test("recurso inexistente avisa", async () => {

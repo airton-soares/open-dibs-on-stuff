@@ -8,7 +8,7 @@ import {
 import { cancelTrigger, scheduleTick } from "./internals/scheduling.ts";
 import { promoteNext } from "./internals/promote.ts";
 import { expiredMsg, reminderMsg } from "./internals/messages.ts";
-import { type DibsConfig, loadConfig } from "./internals/config.ts";
+import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
 
 export const TickDefinition = DefineFunction({
   callback_id: "tick",
@@ -38,11 +38,11 @@ export async function handleTick(
   // deno-lint-ignore no-explicit-any
   client: any,
   inputs: Inputs,
-  opts?: { nowSec?: number; genId?: () => string; config?: DibsConfig },
+  opts?: { nowSec?: number; genId?: () => string; config?: DibsConfig; env?: EnvVars },
 ): Promise<{ status: string }> {
   const nowSec = opts?.nowSec ?? Math.floor(Date.now() / 1000);
   const genId = opts?.genId ?? (() => crypto.randomUUID());
-  const config = opts?.config ?? loadConfig();
+  const config = opts?.config ?? loadConfig(opts?.env);
   const post = (text: string) => client.chat.postMessage({ channel: inputs.channel, text });
 
   const reservation = await getReservation(client, inputs.resource);
@@ -85,9 +85,9 @@ export async function handleTick(
 
 export default SlackFunction(
   TickDefinition,
-  async ({ inputs, client }) => {
+  async ({ inputs, client, env }) => {
     try {
-      const status = await handleTick(client, inputs as Inputs);
+      const status = await handleTick(client, inputs as Inputs, { env });
       return { outputs: status };
     } catch (e) {
       return { error: `tick falhou: ${e}`, outputs: { status: "erro" } };
