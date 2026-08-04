@@ -36,6 +36,59 @@ deno check manifest.ts triggers/*.ts
 deno task test
 ```
 
+## Adding a language
+
+Every string a user reads comes from a catalog in `functions/internals/i18n/locales/`. Translating
+touches no function, workflow, trigger, or `setup.sh`. Three steps:
+
+**1. Copy the reference catalog** and translate the values only. `pt-BR.ts` is the reference: it is
+what defines which keys exist.
+
+```sh
+cp functions/internals/i18n/locales/pt-BR.ts functions/internals/i18n/locales/es.ts
+```
+
+In the new file, replace `export const ptBR = {` with your own name annotated as `Catalog` — that
+annotation is what makes the compiler demand every key:
+
+```ts
+import type { Catalog } from "../catalog.ts";
+
+export const es: Catalog = {
+  "field.service": "Servicio",
+  // ...
+};
+```
+
+Don't rename the keys or the `{placeholders}` — the code fills those in. The text around a
+placeholder can be reordered freely (`{position} of {total}` or `{total} … {position}`).
+
+**2. Register it in `functions/internals/i18n/registry.ts`**: one import and one line in `CATALOGS`.
+The code you use here is the same one that goes into `./setup.sh --locale <code>`.
+
+```ts
+import { es } from "./locales/es.ts";
+
+export const CATALOGS = {
+  "pt-BR": ptBR,
+  "en": en,
+  "es": es,
+} satisfies Record<string, Catalog>;
+```
+
+**3. Run the CI checklist.** It reviews the translation for you: a missing key, an extra key, or a
+misspelled key fails `deno check`, and the tests in `functions/internals/i18n/i18n_test.ts` catch an
+empty translation, a dropped placeholder, and an unregistered language.
+
+```sh
+deno task fmt && deno task lint && deno check manifest.ts triggers/*.ts && deno task test
+```
+
+To see it in Slack: `./setup.sh --locale es`.
+
+You don't need to translate the README, INSTALL, or this file to contribute a language — the catalog
+is enough.
+
 ## Architecture
 
 The project follows the "pure core + thin shell" pattern: business decisions live in pure, testable

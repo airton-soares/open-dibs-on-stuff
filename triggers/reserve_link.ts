@@ -1,11 +1,12 @@
 import { Trigger } from "deno-slack-sdk/types.ts";
 import { TriggerContextData, TriggerTypes } from "deno-slack-api/mod.ts";
 import { ReserveWorkflow } from "../workflows/reserve.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 const trigger: Trigger<typeof ReserveWorkflow.definition> = {
   type: TriggerTypes.Shortcut,
-  name: "Reservar recurso",
-  description: "Reserva um servico em staging/production",
+  name: t("action.reserve"),
+  description: t("action.reserve.description"),
   workflow: "#/workflows/reserve_workflow",
   inputs: {
     interactivity: { value: TriggerContextData.Shortcut.interactivity },

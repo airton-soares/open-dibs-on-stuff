@@ -2,12 +2,13 @@ import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { listReservations } from "./internals/reservations_repo.ts";
 import { queueFor } from "./internals/waitlist_repo.ts";
 import { statusMsg } from "./internals/messages.ts";
-import { assertOk } from "./internals/slack_api.ts";
+import { postEphemeral } from "./internals/slack_api.ts";
 import type { WaitlistEntry } from "./internals/types.ts";
+import { t } from "./internals/i18n/mod.ts";
 
 export const GetStatusDefinition = DefineFunction({
   callback_id: "get_status",
-  title: "Status das reservas",
+  title: t("fn.getStatus"),
   source_file: "functions/get_status.ts",
   input_parameters: {
     properties: {
@@ -27,10 +28,6 @@ interface Inputs {
   user: string;
 }
 
-// Unlike chat.postMessage, which reaches public channels through chat:write.public,
-// chat.postEphemeral only works in channels the app is a member of.
-const INVITE_HINT = "Convide o app no canal com /invite @open-dibs-on-stuff e tente de novo.";
-
 export async function handleGetStatus(
   // deno-lint-ignore no-explicit-any
   client: any,
@@ -40,14 +37,10 @@ export async function handleGetStatus(
   const queues: Record<string, WaitlistEntry[]> = {};
   for (const r of reservations) queues[r.resource] = await queueFor(client, r.resource);
 
-  const res = await client.chat.postEphemeral({
+  await postEphemeral(client, {
     channel: inputs.channel,
     user: inputs.user,
     text: statusMsg(reservations, queues),
-  });
-  assertOk(res, "chat.postEphemeral", {
-    channel_not_found: INVITE_HINT,
-    not_in_channel: INVITE_HINT,
   });
 
   return { status: `${reservations.length} reservas` };

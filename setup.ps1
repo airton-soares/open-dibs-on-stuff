@@ -6,8 +6,34 @@
 
 param(
     [string]$App = "",
+    [string]$Locale = "",
     [switch]$Yes
 )
+
+$localeFile = "functions/internals/i18n/locale.ts"
+$localeDir = "functions/internals/i18n/locales"
+
+function Get-AvailableLocales {
+    Get-ChildItem -Path $localeDir -Filter "*.ts" | ForEach-Object { $_.BaseName } | Sort-Object
+}
+
+function Get-CurrentLocale {
+    $match = Select-String -Path $localeFile -Pattern '^export const LOCALE: Locale = "(.*)";$' |
+        Select-Object -First 1
+    if (-not $match) { throw "Could not read the locale from $localeFile." }
+    return $match.Matches[0].Groups[1].Value
+}
+
+function Set-AppLocale([string]$want) {
+    $available = @(Get-AvailableLocales)
+    if ($available -notcontains $want) {
+        Write-Error "Unknown locale: $want. Available: $($available -join ' '). Adding a language takes one file plus one line; see CONTRIBUTING.md."
+        exit 1
+    }
+    (Get-Content $localeFile) -replace '^export const LOCALE: Locale = ".*";$', "export const LOCALE: Locale = `"$want`";" |
+        Set-Content $localeFile
+    if ((Get-CurrentLocale) -ne $want) { throw "Could not write the locale into $localeFile." }
+}
 
 $ErrorActionPreference = "Stop"
 # PowerShell 7.4+ turns a non-zero exit code from a native command into a terminating error.
@@ -39,6 +65,19 @@ Write-Host "- Deno: found ($((deno --version | Select-Object -First 1)))"
 # doesn't trust, which breaks downloading the Slack SDK hooks (get-manifest -> runtime_not_found).
 # Trusting the OS store fixes it and is harmless on networks without interception.
 $env:DENO_TLS_CA_STORE = "system"
+
+Write-Host ""
+Write-Host "== Language =="
+# The locale is baked in at deploy time: one constant drives messages, form labels and shortcut
+# names, so there is a single place to change and no env var to keep in sync.
+if ($Locale) {
+    Set-AppLocale $Locale
+    Write-Host "- set to $Locale"
+}
+else {
+    Write-Host "- keeping $(Get-CurrentLocale) (change with -Locale <CODE>)"
+}
+Write-Host "- available: $((Get-AvailableLocales) -join ' ')"
 
 Write-Host ""
 Write-Host "== Logging in to Slack =="
@@ -84,12 +123,17 @@ Write-Host "== Syncing link triggers =="
 Write-Host "Existing shortcuts are updated in place, so their links stay valid."
 Write-Host ""
 
-$triggerFiles = @("reserve_link.ts", "release_link.ts", "extend_link.ts", "status_link.ts")
+$triggerFiles = @("reserve_link.ts", "release_link.ts", "extend_link.ts", "leave_queue_link.ts", "status_link.ts")
 
-function Get-TriggerTitle([string]$file) {
-    $match = Select-String -Path "triggers/$file" -Pattern '^\s*name:\s*"(.*)",\s*$' | Select-Object -First 1
-    if (-not $match) { throw "Could not read the trigger name from triggers/$file." }
-    return $match.Matches[0].Groups[1].Value
+# The shortcut name comes from the message catalog now, so it can't be read out of the file with a
+# regex. Asking Deno for it also gives the name in every other locale, which is what lets a language
+# switch update the installed shortcut in place instead of creating a second one.
+function Get-TriggerNames([string]$file) {
+    $names = @(deno run -q --allow-read scripts/trigger_names.ts $file)
+    if ($LASTEXITCODE -ne 0 -or $names.Count -eq 0) {
+        throw "Could not read the trigger name for triggers/$file."
+    }
+    return $names
 }
 
 function Get-TriggerList {
@@ -104,9 +148,16 @@ $installed = Get-TriggerList
 $dupes = @()
 
 foreach ($file in $triggerFiles) {
-    $title = Get-TriggerTitle $file
-    $pattern = "(?m)^\s*" + [regex]::Escape($title) + " (Ft[A-Z0-9]+) \(shortcut\)"
-    $ids = @([regex]::Matches($installed, $pattern) | ForEach-Object { $_.Groups[1].Value })
+    $names = Get-TriggerNames $file
+    $title = $names[0]
+    # Look the shortcut up by its name in any registered language, so switching locale renames the
+    # existing one instead of leaving a duplicate behind.
+    $ids = @()
+    foreach ($name in $names) {
+        $pattern = "(?m)^\s*" + [regex]::Escape($name) + " (Ft[A-Z0-9]+) \(shortcut\)"
+        $ids += @([regex]::Matches($installed, $pattern) | ForEach-Object { $_.Groups[1].Value })
+    }
+    $ids = @($ids | Select-Object -Unique)
 
     if ($ids.Count -eq 0) {
         Write-Host "--- ${title}: creating ---"
@@ -159,15 +210,18 @@ catch {
 Write-Host ""
 Write-Host "== Done =="
 Write-Host ""
-Write-Host "Invite the app to your team's channel, then pin the 4 links above there:"
+Write-Host "Invite the app to your team's channel, then pin the 5 links above there:"
 Write-Host ""
 Write-Host "  /invite @open-dibs-on-stuff"
 Write-Host ""
-Write-Host "The invite is required: Status replies with an ephemeral message, which Slack only allows in"
-Write-Host "channels the app belongs to. Anyone in the workspace can then use the links, no further setup"
-Write-Host "needed on their end. Re-running this script keeps those links valid."
+Write-Host "The invite is required: Status, Leave queue and the expiration reminders use ephemeral messages,"
+Write-Host "which Slack only allows in channels the app belongs to. Anyone in the workspace can then use the"
+Write-Host "links, no further setup needed on their end. Re-running this script keeps those links valid."
 Write-Host ""
 Write-Host "To ship a new version later: pull the latest code and run .\setup.ps1 again."
+Write-Host ""
+Write-Host "To switch language: .\setup.ps1 -Locale en (messages, forms and shortcut names all follow"
+Write-Host "it, and the pinned links keep working because the shortcuts are renamed in place)."
 Write-Host ""
 Write-Host "Optional: set a different timezone or end-of-business-hour default (defaults are"
 Write-Host "America/Sao_Paulo and 18:00):"

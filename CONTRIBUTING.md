@@ -36,6 +36,59 @@ deno check manifest.ts triggers/*.ts
 deno task test
 ```
 
+## Adicionando um idioma
+
+Todo texto que o usuário lê sai de um catálogo em `functions/internals/i18n/locales/`. Traduzir não
+exige mexer em nenhuma função, workflow, trigger ou no `setup.sh`. São três passos:
+
+**1. Copie o catálogo de referência** e traduza só os valores. O `pt-BR.ts` é a referência: é ele
+que define quais chaves existem.
+
+```sh
+cp functions/internals/i18n/locales/pt-BR.ts functions/internals/i18n/locales/es.ts
+```
+
+No arquivo novo, troque o `export const ptBR = {` por um nome próprio anotado com `Catalog`, que é o
+que faz o compilador cobrar as chaves:
+
+```ts
+import type { Catalog } from "../catalog.ts";
+
+export const es: Catalog = {
+  "field.service": "Servicio",
+  // ...
+};
+```
+
+Não renomeie as chaves nem os `{placeholders}` — eles são preenchidos pelo código. O texto ao redor
+do placeholder pode mudar de ordem à vontade (`{position} de {total}` ou `{total} … {position}`).
+
+**2. Registre em `functions/internals/i18n/registry.ts`**: um import e uma linha no `CATALOGS`. O
+código que você usar aqui é o mesmo que vai em `./setup.sh --locale <código>`.
+
+```ts
+import { es } from "./locales/es.ts";
+
+export const CATALOGS = {
+  "pt-BR": ptBR,
+  "en": en,
+  "es": es,
+} satisfies Record<string, Catalog>;
+```
+
+**3. Rode o checklist do CI.** Ele é o seu revisor: chave faltando, chave a mais ou nome de chave
+errado quebram no `deno check`, e os testes em `functions/internals/i18n/i18n_test.ts` reclamam de
+tradução vazia, de placeholder perdido e de idioma não registrado.
+
+```sh
+deno task fmt && deno task lint && deno check manifest.ts triggers/*.ts && deno task test
+```
+
+Pra ver no Slack: `./setup.sh --locale es`.
+
+Não precisa traduzir README, INSTALL ou este arquivo pra contribuir com um idioma — o catálogo é
+suficiente.
+
 ## Arquitetura
 
 O projeto segue o padrão "núcleo puro + casca fina": decisões de negócio ficam em módulos puros e

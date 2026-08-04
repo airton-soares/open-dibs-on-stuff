@@ -3,13 +3,19 @@ import { buildReservation, nextEventDelaySec, resourceKey } from "./internals/do
 import { getReservation, putReservation } from "./internals/reservations_repo.ts";
 import { enqueue, queueFor } from "./internals/waitlist_repo.ts";
 import { scheduleTick } from "./internals/scheduling.ts";
-import { enqueuedMsg, reservedMsg } from "./internals/messages.ts";
-import { assertOk } from "./internals/slack_api.ts";
+import {
+  alreadyOwnerMsg,
+  alreadyQueuedMsg,
+  enqueuedMsg,
+  reservedMsg,
+} from "./internals/messages.ts";
+import { assertOk, postEphemeral } from "./internals/slack_api.ts";
 import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
+import { t } from "./internals/i18n/mod.ts";
 
 export const CreateReservationDefinition = DefineFunction({
   callback_id: "create_reservation",
-  title: "Criar reserva",
+  title: t("fn.createReservation"),
   source_file: "functions/create_reservation.ts",
   input_parameters: {
     properties: {
@@ -54,18 +60,30 @@ export async function handleCreateReservation(
 
   const existing = await getReservation(client, resource);
   if (existing) {
-    const q = await queueFor(client, resource);
-    if (existing.owner !== inputs.owner && !q.some((e) => e.user === inputs.owner)) {
-      await enqueue(client, {
-        id: genId(),
-        resource,
-        user: inputs.owner,
-        requested_at: nowSec,
-      });
+    const tellRequester = (text: string) =>
+      postEphemeral(client, { channel: inputs.channel, user: inputs.owner, text });
+
+    if (existing.owner === inputs.owner) {
+      await tellRequester(alreadyOwnerMsg(resource));
+      return { status: `${resource} ja reservado por ${inputs.owner}` };
     }
-    const position = (await queueFor(client, resource)).findIndex((e) => e.user === inputs.owner) +
-      1;
-    await post(enqueuedMsg(resource, inputs.owner, position));
+
+    const queue = await queueFor(client, resource);
+    const queued = queue.findIndex((e) => e.user === inputs.owner);
+    if (queued >= 0) {
+      await tellRequester(alreadyQueuedMsg(resource, queued + 1, queue.length));
+      return { status: `${inputs.owner} ja esta na fila de ${resource}` };
+    }
+
+    await enqueue(client, {
+      id: genId(),
+      resource,
+      user: inputs.owner,
+      requested_at: nowSec,
+    });
+    const updated = await queueFor(client, resource);
+    const position = updated.findIndex((e) => e.user === inputs.owner) + 1;
+    await post(enqueuedMsg(resource, inputs.owner, position, updated.length));
     return { status: `${resource} ocupado; ${inputs.owner} na fila` };
   }
 

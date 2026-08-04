@@ -20,10 +20,13 @@ Interaction happens through **link triggers** (shortcuts pinned in the channel) 
 
 - **Reserve**: service + environment + duration (30m, 1h, 2h, 4h, until end of business day) +
   optional note. If the resource is free, creates the reservation; if it's taken, puts you on the
-  waitlist.
+  waitlist and tells you your position. Whoever already holds the resource or is already on its
+  waitlist doesn't get queued again — they just get an ephemeral notice.
 - **Release**: service + environment. Only the owner can release. On release, the next person in the
   waitlist is automatically promoted.
 - **Extend**: service + environment + extra time (+30m, +1h, +2h). Only the owner.
+- **Leave queue**: service + environment. Takes you off that resource's waitlist; the confirmation
+  is ephemeral (only you see it). If you're not on the waitlist, the app just says so.
 - **Status**: lists what's reserved, by whom, until when, and the waitlists.
 
 The resource is identified by `service-suffix`, where the suffix is `dev`, `stg`, or `prod` (e.g.
@@ -33,6 +36,10 @@ Each reservation schedules a one-off (`once`) trigger that fires reminders to th
 and 10 minutes before the end and, on expiration, expires the reservation and promotes the next
 person in the waitlist. Whoever gets promoted from the waitlist receives the resource **until the
 end of the business day**.
+
+Reminders are ephemeral: only the reservation owner sees them. Since ephemeral messages disappear on
+reload and don't push a notification, treat a reminder as a nudge, not as a guaranteed alert.
+Expiration and promotion stay public in the channel, since they concern everyone.
 
 ## Configuration
 
@@ -50,6 +57,28 @@ Set on the published app:
 slack env add DIBS_TIMEZONE America/Sao_Paulo
 slack env add DIBS_BUSINESS_END_HOUR 18
 ```
+
+### Language
+
+The language is **not** an environment variable: it is picked at install time, through a single
+option on the setup script.
+
+```sh
+./setup.sh --locale en     # .\setup.ps1 -Locale en on Windows
+```
+
+The default is `pt-BR`, and the value sticks between runs (`./setup.sh` without the flag keeps
+whatever is set). A single constant (`functions/internals/i18n/locale.ts`) drives messages, form
+labels and shortcut names, so the app can't end up half-translated. Switching means running the
+setup again, because forms and shortcuts are resolved at deploy time — in exchange, there is no
+language env var to drift out of sync.
+
+Links already pinned in the channel keep working after a switch: the setup finds the installed
+shortcut by its name in any registered language and renames it in place instead of creating a second
+one.
+
+Available languages: `pt-BR`, `en`. Adding yours is one file plus one line — see
+[CONTRIBUTING.en.md](CONTRIBUTING.en.md#adding-a-language).
 
 ## Prerequisites
 
@@ -80,6 +109,7 @@ will use the app in):
 slack trigger create --trigger-def triggers/reserve_link.ts
 slack trigger create --trigger-def triggers/release_link.ts
 slack trigger create --trigger-def triggers/extend_link.ts
+slack trigger create --trigger-def triggers/leave_queue_link.ts
 slack trigger create --trigger-def triggers/status_link.ts
 ```
 
@@ -112,8 +142,10 @@ slack.json             # Slack CLI hooks
 datastores/            # reservations (PK resource) and waitlist (PK id)
 functions/             # custom functions (thin shells) + co-located tests
   internals/           # pure domain core + IO (tested without network)
-workflows/             # reserve, release, extend, status, tick
+    i18n/locales/      # message catalogs (pt-BR is the reference for the key set)
+workflows/             # reserve, release, extend, leave_queue, status, tick
 triggers/              # link triggers for the shortcuts
+scripts/               # helpers used by the setup script (shortcut name per language)
 assets/icon.png        # app icon (referenced by the manifest)
 assets/icon.svg        # vector source for the icon
 ```

@@ -1,9 +1,10 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
 import { ExtendReservationDefinition } from "../functions/extend_reservation.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 export const ExtendWorkflow = DefineWorkflow({
   callback_id: "extend_workflow",
-  title: "Estender recurso",
+  title: t("action.extend"),
   input_parameters: {
     properties: {
       interactivity: { type: Schema.slack.types.interactivity },
@@ -15,15 +16,15 @@ export const ExtendWorkflow = DefineWorkflow({
 });
 
 const form = ExtendWorkflow.addStep(Schema.slack.functions.OpenForm, {
-  title: "Estender recurso",
+  title: t("action.extend"),
   interactivity: ExtendWorkflow.inputs.interactivity,
-  submit_label: "Estender",
+  submit_label: t("action.extend.submit"),
   fields: {
     elements: [
-      { name: "service", title: "Servico", type: Schema.types.string },
+      { name: "service", title: t("field.service"), type: Schema.types.string },
       {
         name: "environment",
-        title: "Ambiente",
+        title: t("field.environment"),
         type: Schema.types.string,
         enum: ["development", "staging", "production"],
         choices: [
@@ -34,13 +35,13 @@ const form = ExtendWorkflow.addStep(Schema.slack.functions.OpenForm, {
       },
       {
         name: "extra",
-        title: "Tempo extra",
+        title: t("field.extraTime"),
         type: Schema.types.string,
         enum: ["30m", "1h", "2h"],
         choices: [
-          { value: "30m", title: "+30 min" },
-          { value: "1h", title: "+1 hora" },
-          { value: "2h", title: "+2 horas" },
+          { value: "30m", title: t("extra.30m") },
+          { value: "1h", title: t("extra.1h") },
+          { value: "2h", title: t("extra.2h") },
         ],
         default: "1h",
       },

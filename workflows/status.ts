@@ -1,9 +1,10 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
 import { GetStatusDefinition } from "../functions/get_status.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 export const StatusWorkflow = DefineWorkflow({
   callback_id: "status_workflow",
-  title: "Status das reservas",
+  title: t("action.status"),
   input_parameters: {
     properties: {
       channel: { type: Schema.slack.types.channel_id },

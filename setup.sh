@@ -8,15 +8,46 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 
 APP_ID=""
 ASSUME_YES=0
+LOCALE=""
+
+LOCALE_FILE="functions/internals/i18n/locale.ts"
+LOCALE_DIR="functions/internals/i18n/locales"
 
 usage() {
   cat <<'USAGE'
-Usage: ./setup.sh [--app <APP_ID>] [--yes]
+Usage: ./setup.sh [--app <APP_ID>] [--locale <CODE>] [--yes]
 
-  --app <APP_ID>  target a specific app; only needed when the Slack CLI knows more than one
-  -y, --yes       delete leftover duplicate triggers without asking
-  -h, --help      show this help
+  --app <APP_ID>   target a specific app; only needed when the Slack CLI knows more than one
+  --locale <CODE>  language of messages, forms and shortcut names (default: pt-BR, kept between
+                   runs). Run with an unknown code to list what is available.
+  -y, --yes        delete leftover duplicate triggers without asking
+  -h, --help       show this help
 USAGE
+}
+
+available_locales() {
+  ls "$LOCALE_DIR" | sed -n 's/\.ts$//p' | sort
+}
+
+current_locale() {
+  sed -n 's/^export const LOCALE: Locale = "\(.*\)";$/\1/p' "$LOCALE_FILE" | head -n1
+}
+
+set_locale() {
+  want="$1"
+  if ! available_locales | grep -qx -- "$want"; then
+    echo "Unknown locale: $want" >&2
+    echo "Available: $(available_locales | tr '\n' ' ')" >&2
+    echo "Adding a language takes one file plus one line; see CONTRIBUTING.md." >&2
+    exit 1
+  fi
+  sed 's|^export const LOCALE: Locale = ".*";$|export const LOCALE: Locale = "'"$want"'";|' \
+    "$LOCALE_FILE" >"$LOCALE_FILE.new"
+  mv "$LOCALE_FILE.new" "$LOCALE_FILE"
+  if [ "$(current_locale)" != "$want" ]; then
+    echo "Error: could not write the locale into $LOCALE_FILE." >&2
+    exit 1
+  fi
 }
 
 while [ $# -gt 0 ]; do
@@ -27,6 +58,14 @@ while [ $# -gt 0 ]; do
       ;;
     --app=*)
       APP_ID="${1#*=}"
+      shift
+      ;;
+    --locale)
+      LOCALE="${2:-}"
+      shift 2
+      ;;
+    --locale=*)
+      LOCALE="${1#*=}"
       shift
       ;;
     -y | --yes)
@@ -71,6 +110,18 @@ echo "- Deno: found ($(deno --version | head -n1))"
 export DENO_TLS_CA_STORE=system
 
 echo
+echo "== Language =="
+# The locale is baked in at deploy time: one constant drives messages, form labels and shortcut
+# names, so there is a single place to change and no env var to keep in sync.
+if [ -n "$LOCALE" ]; then
+  set_locale "$LOCALE"
+  echo "- set to $LOCALE"
+else
+  echo "- keeping $(current_locale) (change with --locale <CODE>)"
+fi
+echo "- available: $(available_locales | tr '\n' ' ')"
+
+echo
 echo "== Logging in to Slack =="
 if slack auth list --no-color --skip-update 2>/dev/null | grep -q "Team ID:"; then
   echo "- already logged in; skipping (run 'slack login' by hand to add another workspace)"
@@ -107,10 +158,24 @@ echo "== Syncing link triggers =="
 echo "Existing shortcuts are updated in place, so their links stay valid."
 echo
 
-TRIGGER_FILES="reserve_link.ts release_link.ts extend_link.ts status_link.ts"
+TRIGGER_FILES="reserve_link.ts release_link.ts extend_link.ts leave_queue_link.ts status_link.ts"
 
-trigger_title() {
-  sed -n 's/^[[:space:]]*name:[[:space:]]*"\(.*\)",[[:space:]]*$/\1/p' "triggers/$1" | head -n1
+# The shortcut name comes from the message catalog now, so it can't be read out of the file with
+# sed. Asking Deno for it also gives the name in every other locale, which is what lets a language
+# switch update the installed shortcut in place instead of creating a second one.
+trigger_names() {
+  deno run -q --allow-read scripts/trigger_names.ts "$1"
+}
+
+# Literal (non-regex) match, since a translated name may contain characters sed would treat as
+# syntax.
+trigger_ids_named() {
+  printf '%s\n' "$INSTALLED" | awk -v n="$1" '
+    { line = $0; sub(/^[[:space:]]+/, "", line) }
+    index(line, n " ") == 1 {
+      rest = substr(line, length(n) + 2)
+      if (rest ~ /^Ft[A-Z0-9]+ \(shortcut\)/) { split(rest, a, " "); print a[1] }
+    }'
 }
 
 trigger_list() {
@@ -123,14 +188,23 @@ INSTALLED="$(trigger_list)"
 DUPES=""
 
 for file in $TRIGGER_FILES; do
-  title="$(trigger_title "$file")"
+  names="$(trigger_names "$file")" || names=""
+  title="$(printf '%s\n' "$names" | head -n1)"
   if [ -z "$title" ]; then
-    echo "Error: could not read the trigger name from triggers/$file." >&2
+    echo "Error: could not read the trigger name for triggers/$file." >&2
     exit 1
   fi
 
-  ids="$(printf '%s\n' "$INSTALLED" |
-    sed -n "s/^[[:space:]]*${title} \(Ft[A-Z0-9]*\) (shortcut).*/\1/p")"
+  # Look the shortcut up by its name in any registered language, so switching locale renames the
+  # existing one instead of leaving a duplicate behind.
+  ids=""
+  while IFS= read -r name; do
+    [ -z "$name" ] && continue
+    ids="$(printf '%s\n%s' "$ids" "$(trigger_ids_named "$name")")"
+  done <<EOF
+$names
+EOF
+  ids="$(printf '%s\n' "$ids" | grep . | awk '!seen[$0]++' || true)"
 
   if [ -z "$ids" ]; then
     echo "--- $title: creating ---"
@@ -180,15 +254,18 @@ trigger_list || echo "(could not list triggers; run: slack trigger list --app $A
 cat <<EOF
 == Done ==
 
-Invite the app to your team's channel, then pin the 4 links above there:
+Invite the app to your team's channel, then pin the 5 links above there:
 
   /invite @open-dibs-on-stuff
 
-The invite is required: Status replies with an ephemeral message, which Slack only allows in
-channels the app belongs to. Anyone in the workspace can then use the links, no further setup
-needed on their end. Re-running this script keeps those links valid.
+The invite is required: Status, Leave queue and the expiration reminders use ephemeral messages,
+which Slack only allows in channels the app belongs to. Anyone in the workspace can then use the
+links, no further setup needed on their end. Re-running this script keeps those links valid.
 
 To ship a new version later: pull the latest code and run ./setup.sh again.
+
+To switch language: ./setup.sh --locale en (messages, forms and shortcut names all follow it, and
+the pinned links keep working because the shortcuts are renamed in place).
 
 Optional: set a different timezone or end-of-business-hour default (defaults are
 America/Sao_Paulo and 18:00):

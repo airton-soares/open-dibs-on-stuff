@@ -1,10 +1,10 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
-import { ReleaseReservationDefinition } from "../functions/release_reservation.ts";
+import { LeaveQueueDefinition } from "../functions/leave_queue.ts";
 import { t } from "../functions/internals/i18n/mod.ts";
 
-export const ReleaseWorkflow = DefineWorkflow({
-  callback_id: "release_workflow",
-  title: t("action.release"),
+export const LeaveQueueWorkflow = DefineWorkflow({
+  callback_id: "leave_queue_workflow",
+  title: t("action.leaveQueue"),
   input_parameters: {
     properties: {
       interactivity: { type: Schema.slack.types.interactivity },
@@ -15,10 +15,10 @@ export const ReleaseWorkflow = DefineWorkflow({
   },
 });
 
-const form = ReleaseWorkflow.addStep(Schema.slack.functions.OpenForm, {
-  title: t("action.release"),
-  interactivity: ReleaseWorkflow.inputs.interactivity,
-  submit_label: t("action.release.submit"),
+const form = LeaveQueueWorkflow.addStep(Schema.slack.functions.OpenForm, {
+  title: t("action.leaveQueue"),
+  interactivity: LeaveQueueWorkflow.inputs.interactivity,
+  submit_label: t("action.leaveQueue.submit"),
   fields: {
     elements: [
       { name: "service", title: t("field.service"), type: Schema.types.string },
@@ -38,9 +38,9 @@ const form = ReleaseWorkflow.addStep(Schema.slack.functions.OpenForm, {
   },
 });
 
-ReleaseWorkflow.addStep(ReleaseReservationDefinition, {
+LeaveQueueWorkflow.addStep(LeaveQueueDefinition, {
   service: form.outputs.fields.service,
   environment: form.outputs.fields.environment,
-  requester: ReleaseWorkflow.inputs.user,
-  channel: ReleaseWorkflow.inputs.channel,
+  requester: LeaveQueueWorkflow.inputs.user,
+  channel: LeaveQueueWorkflow.inputs.channel,
 });

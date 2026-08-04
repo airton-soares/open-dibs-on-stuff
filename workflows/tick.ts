@@ -1,9 +1,10 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
 import { TickDefinition } from "../functions/tick.ts";
+import { t } from "../functions/internals/i18n/mod.ts";
 
 export const TickWorkflow = DefineWorkflow({
   callback_id: "tick_workflow",
-  title: "Tick de reserva",
+  title: t("action.tick"),
   input_parameters: {
     properties: {
       resource: { type: Schema.types.string },
