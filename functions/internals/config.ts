@@ -5,13 +5,11 @@ export interface DibsConfig {
   businessEndHour: number;
 }
 
-export interface EnvReader {
-  get(key: string): string | undefined;
-}
+export type EnvVars = Record<string, string | undefined>;
 
-export function loadConfig(env: EnvReader = Deno.env): DibsConfig {
-  const tz = env.get("DIBS_TIMEZONE") ?? TZ;
-  const raw = env.get("DIBS_BUSINESS_END_HOUR");
+export function loadConfig(env: EnvVars = {}): DibsConfig {
+  const tz = env["DIBS_TIMEZONE"] ?? TZ;
+  const raw = env["DIBS_BUSINESS_END_HOUR"];
   const parsed = raw === undefined ? NaN : Number(raw);
   const businessEndHour = Number.isInteger(parsed) && parsed >= 0 && parsed <= 23
     ? parsed

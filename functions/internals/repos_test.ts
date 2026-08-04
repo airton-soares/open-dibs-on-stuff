@@ -1,7 +1,12 @@
 // deno-lint-ignore-file no-explicit-any
-import { assertEquals } from "@std/assert";
-import { getReservation, putReservation } from "./reservations_repo.ts";
-import { queueFor } from "./waitlist_repo.ts";
+import { assertEquals, assertRejects } from "@std/assert";
+import {
+  deleteReservation,
+  getReservation,
+  listReservations,
+  putReservation,
+} from "./reservations_repo.ts";
+import { dequeue, enqueue, queueFor } from "./waitlist_repo.ts";
 import type { Reservation, WaitlistEntry } from "./types.ts";
 
 function stub(items: Record<string, any[]>) {
@@ -40,6 +45,21 @@ Deno.test("putReservation grava no datastore reservations", async () => {
 Deno.test("getReservation retorna null quando vazio", async () => {
   const { client } = stub({ reservations: [] });
   assertEquals(await getReservation(client as any, "x-stg"), null);
+});
+
+Deno.test("repos lancam quando o datastore recusa em vez de fingir vazio", async () => {
+  const fail = () => Promise.resolve({ ok: false, error: "datastore_error" });
+  const c = { apps: { datastore: { put: fail, get: fail, delete: fail, query: fail } } } as any;
+  const reservation = { resource: "cards-stg" } as Reservation;
+  const entry: WaitlistEntry = { id: "w1", resource: "cards-stg", user: "U1", requested_at: 1 };
+
+  await assertRejects(() => getReservation(c, "cards-stg"), Error, "datastore_error");
+  await assertRejects(() => putReservation(c, reservation), Error, "datastore_error");
+  await assertRejects(() => deleteReservation(c, "cards-stg"), Error, "datastore_error");
+  await assertRejects(() => listReservations(c), Error, "datastore_error");
+  await assertRejects(() => enqueue(c, entry), Error, "datastore_error");
+  await assertRejects(() => queueFor(c, "cards-stg"), Error, "datastore_error");
+  await assertRejects(() => dequeue(c, "w1"), Error, "datastore_error");
 });
 
 Deno.test("queueFor ordena por requested_at asc", async () => {

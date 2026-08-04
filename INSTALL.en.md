@@ -36,6 +36,13 @@ cd open-dibs-on-stuff
 The script checks prerequisites, opens Slack login in your browser, deploys the app, and creates the
 4 shortcuts (Reserve, Release, Extend, Status), printing the links at the end.
 
+Re-run it as often as you like: it skips the login if you're already authenticated and **updates**
+the existing shortcuts instead of creating new ones, so links already pinned in the channel keep
+working. Optional flags:
+
+- `--app <APP_ID>` (`-App` on PowerShell): pick the app when the Slack CLI knows more than one.
+- `--yes` / `-y` (`-Yes` on PowerShell): delete duplicate shortcuts without asking.
+
 ## Option 2: manual steps
 
 ```sh
@@ -53,8 +60,18 @@ Each `trigger create` returns a shortcut link.
 
 ## After deploying
 
-Take the 4 returned links and pin them in the channel your team will use the app in. From there,
-it's just clicking the shortcut. Nobody else needs to install anything.
+Invite the app to the channel your team will use:
+
+```
+/invite @open-dibs-on-stuff
+```
+
+This is required: **Status** replies with an ephemeral message (only the person who clicked sees
+it), and Slack only allows ephemeral messages in channels the app belongs to. Without the invite,
+Status fails with `channel_not_found`.
+
+Take the 4 returned links and pin them in that channel. From there, it's just clicking the shortcut.
+Nobody else needs to install anything.
 
 Optional: timezone and end-of-business-hour have defaults (`America/Sao_Paulo`, 18:00). To change
 them:
@@ -64,8 +81,32 @@ slack env add DIBS_TIMEZONE America/Sao_Paulo
 slack env add DIBS_BUSINESS_END_HOUR 18
 ```
 
+## Upgrading to a new version
+
+```sh
+git pull
+./setup.sh
+```
+
+The script redeploys the current code and reuses the existing shortcuts (`slack trigger update`),
+which keep the same ID and therefore the same link. Nothing to re-pin, nobody to notify.
+
+When it finishes, open one of the shortcuts and make a reservation to confirm the new version is
+live.
+
+If an earlier run was interrupted halfway and left duplicate shortcuts behind, the script lists the
+leftovers and offers to delete them. By hand:
+
+```sh
+slack trigger list --app <APP_ID>
+slack trigger delete --trigger-id <ID> --app <APP_ID>
+```
+
 ## Common issues
 
+- **`get_status failed: chat.postEphemeral failed: channel_not_found`**: the app isn't a member of
+  the channel. Run `/invite @open-dibs-on-stuff` there. The other actions work without the invite
+  because they post regular messages; only Status needs it, being ephemeral.
 - **`slack: command not found`**: install the Slack CLI. Linux/macOS:
   `curl -fsSL
   https://downloads.slack-edge.com/slack-cli/install.sh | bash`. Windows (PowerShell):

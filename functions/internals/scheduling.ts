@@ -1,3 +1,4 @@
+import { assertOk } from "./slack_api.ts";
 import { TZ } from "./types.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -26,10 +27,15 @@ export async function scheduleTick(
       frequency: { type: "once" },
     },
   });
+  assertOk(res, "workflows.triggers.create");
   return res.trigger.id as string;
 }
 
 export async function cancelTrigger(client: TriggerClient, triggerId: string): Promise<void> {
   if (!triggerId) return;
-  await client.workflows.triggers.delete({ trigger_id: triggerId });
+  const res = await client.workflows.triggers.delete({ trigger_id: triggerId });
+  // Best-effort cleanup: a tick that already fired leaves a stale id behind, and failing the
+  // whole release over an already-gone trigger would be worse than ignoring it.
+  if (typeof res?.error === "string" && res.error.includes("not_found")) return;
+  assertOk(res, "workflows.triggers.delete");
 }

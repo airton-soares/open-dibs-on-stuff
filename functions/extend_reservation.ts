@@ -9,6 +9,7 @@ import {
 import { getReservation, putReservation } from "./internals/reservations_repo.ts";
 import { cancelTrigger, scheduleTick } from "./internals/scheduling.ts";
 import { extendedMsg, notFoundMsg, notOwnerMsg } from "./internals/messages.ts";
+import { assertOk } from "./internals/slack_api.ts";
 
 export const ExtendReservationDefinition = DefineFunction({
   callback_id: "extend_reservation",
@@ -46,7 +47,10 @@ export async function handleExtendReservation(
 ): Promise<{ status: string }> {
   const nowSec = opts?.nowSec ?? Math.floor(Date.now() / 1000);
   const resource = resourceKey(inputs.service, inputs.environment);
-  const post = (text: string) => client.chat.postMessage({ channel: inputs.channel, text });
+  const post = async (text: string) => {
+    const res = await client.chat.postMessage({ channel: inputs.channel, text });
+    assertOk(res, "chat.postMessage");
+  };
 
   const reservation = await getReservation(client, resource);
   if (!reservation) {

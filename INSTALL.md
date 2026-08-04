@@ -37,6 +37,13 @@ cd open-dibs-on-stuff
 O script confere os pré-requisitos, abre o login do Slack no navegador, faz o deploy e cria os 4
 atalhos (Reservar, Liberar, Estender, Status), imprimindo os links no final.
 
+Pode rodar de novo à vontade: ele pula o login se você já estiver autenticado e **atualiza** os
+atalhos existentes em vez de criar novos, então os links já fixados no canal continuam valendo.
+Flags opcionais:
+
+- `--app <APP_ID>` (`-App` no PowerShell): escolhe o app quando o Slack CLI conhece mais de um.
+- `--yes` / `-y` (`-Yes` no PowerShell): apaga atalhos duplicados sem perguntar.
+
 ## Opção 2: passo a passo manual
 
 ```sh
@@ -54,8 +61,18 @@ Cada `trigger create` devolve um link de atalho.
 
 ## Depois do deploy
 
-Pegue os 4 links retornados e fixe (pin) no canal onde o time vai usar o app. A partir daí, é só
-clicar no atalho. Ninguém mais precisa instalar nada.
+Convide o app no canal onde o time vai usar:
+
+```
+/invite @open-dibs-on-stuff
+```
+
+Isso é obrigatório: o **Status** responde por mensagem efêmera (só quem clicou enxerga), e o Slack
+só permite mensagem efêmera em canal do qual o app é membro. Sem o convite, o Status falha com
+`channel_not_found`.
+
+Pegue os 4 links retornados e fixe (pin) nesse canal. A partir daí, é só clicar no atalho. Ninguém
+mais precisa instalar nada.
 
 Opcional: fuso horário e hora de fim de expediente têm default (`America/Sao_Paulo`, 18h). Pra
 mudar:
@@ -65,8 +82,31 @@ slack env add DIBS_TIMEZONE America/Sao_Paulo
 slack env add DIBS_BUSINESS_END_HOUR 18
 ```
 
+## Atualizando para uma versão nova
+
+```sh
+git pull
+./setup.sh
+```
+
+O script redeploya o código atual e reaproveita os atalhos existentes (`slack trigger update`), que
+mantêm o mesmo ID e, portanto, o mesmo link. Não precisa refixar nada no canal nem avisar o time.
+
+No fim, abra um dos atalhos e faça uma reserva pra confirmar que a versão nova está no ar.
+
+Se uma execução anterior tiver sido interrompida no meio e deixado atalhos duplicados, o script
+lista os sobrando e oferece apagar. Manualmente:
+
+```sh
+slack trigger list --app <APP_ID>
+slack trigger delete --trigger-id <ID> --app <APP_ID>
+```
+
 ## Problemas comuns
 
+- **`get_status falhou: chat.postEphemeral falhou: channel_not_found`**: o app não é membro do
+  canal. Rode `/invite @open-dibs-on-stuff` nele. As outras ações funcionam sem o convite porque
+  postam mensagem normal; só o Status precisa, por ser efêmero.
 - **`slack: command not found`**: instale o Slack CLI. Linux/macOS:
   `curl -fsSL
   https://downloads.slack-edge.com/slack-cli/install.sh | bash`. Windows (PowerShell):

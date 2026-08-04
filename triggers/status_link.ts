@@ -9,6 +9,7 @@ const trigger: Trigger<typeof StatusWorkflow.definition> = {
   workflow: "#/workflows/status_workflow",
   inputs: {
     channel: { value: TriggerContextData.Shortcut.channel_id },
+    user: { value: TriggerContextData.Shortcut.user_id },
   },
 };
 

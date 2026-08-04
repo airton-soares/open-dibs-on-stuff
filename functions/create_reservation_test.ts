@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
-import { assertEquals, assertStringIncludes } from "@std/assert";
+import { assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
 import { handleCreateReservation } from "./create_reservation.ts";
+import { endOfBusinessDaySec } from "./internals/time.ts";
 
 const config = { tz: "America/Sao_Paulo", businessEndHour: 18 };
 
@@ -46,6 +47,97 @@ Deno.test("cria reserva quando o recurso esta livre", async () => {
   assertEquals(puts[0].owner, "U1");
   assertStringIncludes(posts[0], "reservou");
   assertStringIncludes(out.status, "cards-stg");
+});
+
+Deno.test("usa o env do contexto quando config nao e informado", async () => {
+  const { c, puts } = client();
+  await handleCreateReservation(c as any, {
+    service: "cards",
+    environment: "staging",
+    duration: "eob",
+    note: "",
+    owner: "U1",
+    channel: "C1",
+  }, {
+    nowSec: 1000,
+    genId: () => "tok",
+    env: { DIBS_TIMEZONE: "America/New_York", DIBS_BUSINESS_END_HOUR: "20" },
+  });
+  assertEquals(puts[0].expires_at, endOfBusinessDaySec(1000, "America/New_York", 20));
+});
+
+Deno.test("cai nos defaults quando o env do contexto vem vazio", async () => {
+  const { c, puts } = client();
+  await handleCreateReservation(c as any, {
+    service: "cards",
+    environment: "staging",
+    duration: "eob",
+    note: "",
+    owner: "U1",
+    channel: "C1",
+  }, { nowSec: 1000, genId: () => "tok", env: {} });
+  assertEquals(puts[0].expires_at, endOfBusinessDaySec(1000));
+});
+
+Deno.test("nao reserva por cima quando a leitura do datastore falha", async () => {
+  const puts: any[] = [];
+  const posts: string[] = [];
+  const c = {
+    apps: {
+      datastore: {
+        get: () => Promise.resolve({ ok: false, error: "datastore_error" }),
+        put: (a: any) => {
+          puts.push(a.item);
+          return Promise.resolve({ ok: true });
+        },
+        query: () => Promise.resolve({ ok: true, items: [] }),
+        delete: () => Promise.resolve({ ok: true }),
+      },
+    },
+    workflows: {
+      triggers: { create: () => Promise.resolve({ ok: true, trigger: { id: "T" } }) },
+    },
+    chat: {
+      postMessage: (a: any) => {
+        posts.push(a.text);
+        return Promise.resolve({ ok: true });
+      },
+    },
+  };
+
+  await assertRejects(
+    () =>
+      handleCreateReservation(c as any, {
+        service: "cards",
+        environment: "staging",
+        duration: "2h",
+        note: "",
+        owner: "U1",
+        channel: "C1",
+      }, { nowSec: 1000, genId: () => "tok", config }),
+    Error,
+    "datastore_error",
+  );
+  assertEquals(puts.length, 0);
+  assertEquals(posts.length, 0);
+});
+
+Deno.test("falha quando o Slack recusa a mensagem", async () => {
+  const { c } = client();
+  c.chat.postMessage = () => Promise.resolve({ ok: false, error: "not_in_channel" } as any);
+  await assertRejects(
+    () =>
+      handleCreateReservation(c as any, {
+        service: "cards",
+        environment: "staging",
+        duration: "2h",
+        note: "",
+        owner: "U1",
+        channel: "C1",
+      }, { nowSec: 1000, genId: () => "tok", config }),
+    Error,
+    "not_in_channel",
+  );
 });
 
 Deno.test("entra na fila quando ocupado", async () => {
