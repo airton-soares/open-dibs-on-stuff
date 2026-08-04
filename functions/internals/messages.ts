@@ -57,7 +57,7 @@ export function promotedMsg(r: Reservation): string {
 }
 
 export function reminderMsg(r: Reservation, marker: number): string {
-  return `:bell: <@${r.owner}>, sua reserva de *${r.resource}* expira em ${marker} min. ` +
+  return `:bell: Sua reserva de *${r.resource}* expira em ${marker} min. ` +
     `Para manter, use o atalho *Estender* informando ${r.service} / ${r.environment}.`;
 }
 

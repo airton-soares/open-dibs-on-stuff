@@ -36,6 +36,10 @@ Cada reserva agenda um `trigger` pontual (`once`) que dispara lembretes ao dono 
 minutos do fim e, no vencimento, expira a reserva e promove o próximo da fila. Quem é promovido da
 fila recebe o recurso **até o fim do expediente**.
 
+Os lembretes são efêmeros: só o dono da reserva vê. Como mensagem efêmera desaparece quando o Slack
+recarrega e não gera notificação, o lembrete é melhor tratado como um empurrão, não como garantia de
+aviso. Expiração e promoção continuam públicas no canal, porque interessam a todo mundo.
+
 ## Configuração
 
 Fuso e horário de fim de expediente são configuráveis por variáveis de ambiente do ROSI (com

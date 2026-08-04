@@ -37,6 +37,10 @@ and 10 minutes before the end and, on expiration, expires the reservation and pr
 person in the waitlist. Whoever gets promoted from the waitlist receives the resource **until the
 end of the business day**.
 
+Reminders are ephemeral: only the reservation owner sees them. Since ephemeral messages disappear on
+reload and don't push a notification, treat a reminder as a nudge, not as a guaranteed alert.
+Expiration and promotion stay public in the channel, since they concern everyone.
+
 ## Configuration
 
 Timezone and end-of-business-day hour are configurable via ROSI environment variables (with

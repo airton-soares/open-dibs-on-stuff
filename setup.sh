@@ -184,9 +184,9 @@ Invite the app to your team's channel, then pin the 5 links above there:
 
   /invite @open-dibs-on-stuff
 
-The invite is required: Status and Leave queue reply with an ephemeral message, which Slack only
-allows in channels the app belongs to. Anyone in the workspace can then use the links, no further
-setup needed on their end. Re-running this script keeps those links valid.
+The invite is required: Status, Leave queue and the expiration reminders use ephemeral messages,
+which Slack only allows in channels the app belongs to. Anyone in the workspace can then use the
+links, no further setup needed on their end. Re-running this script keeps those links valid.
 
 To ship a new version later: pull the latest code and run ./setup.sh again.
 

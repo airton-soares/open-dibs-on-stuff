@@ -68,9 +68,9 @@ Convide o app no canal onde o time vai usar:
 /invite @open-dibs-on-stuff
 ```
 
-Isso é obrigatório: o **Status** e o **Sair da fila** respondem por mensagem efêmera (só quem clicou
-enxerga), e o Slack só permite mensagem efêmera em canal do qual o app é membro. Sem o convite,
-essas ações falham com `channel_not_found`.
+Isso é obrigatório: o **Status**, o **Sair da fila** e os lembretes de expiração usam mensagem
+efêmera (só a pessoa em questão enxerga), e o Slack só permite mensagem efêmera em canal do qual o
+app é membro. Sem o convite, essas ações falham com `channel_not_found`.
 
 Pegue os 5 links retornados e fixe (pin) nesse canal. A partir daí, é só clicar no atalho. Ninguém
 mais precisa instalar nada.
@@ -106,9 +106,12 @@ slack trigger delete --trigger-id <ID> --app <APP_ID>
 ## Problemas comuns
 
 - **`get_status falhou: chat.postEphemeral falhou: channel_not_found`**: o app não é membro do
-  canal. Rode `/invite @open-dibs-on-stuff` nele. Vale também para o `leave_queue` e para os avisos
-  do Reservar de quem já é dono ou já está na fila, que são efêmeros. O resto funciona sem o convite
-  porque posta mensagem normal.
+  canal. Rode `/invite @open-dibs-on-stuff` nele. Vale também para o `leave_queue`, para os
+  lembretes de expiração e para os avisos do Reservar de quem já é dono ou já está na fila, que são
+  efêmeros. O resto funciona sem o convite porque posta mensagem normal.
+- **`tick falhou: chat.postEphemeral falhou: user_not_in_channel`**: o dono da reserva saiu do
+  canal, então o Slack não entrega o lembrete efêmero para ele. A reserva não fica presa: o tick
+  reagenda antes de mandar o lembrete, então a expiração automática segue funcionando.
 - **`slack: command not found`**: instale o Slack CLI. Linux/macOS:
   `curl -fsSL
   https://downloads.slack-edge.com/slack-cli/install.sh | bash`. Windows (PowerShell):

@@ -67,9 +67,9 @@ Invite the app to the channel your team will use:
 /invite @open-dibs-on-stuff
 ```
 
-This is required: **Status** and **Leave queue** reply with an ephemeral message (only the person
-who clicked sees it), and Slack only allows ephemeral messages in channels the app belongs to.
-Without the invite, those actions fail with `channel_not_found`.
+This is required: **Status**, **Leave queue**, and the expiration reminders use ephemeral messages
+(only the person concerned sees them), and Slack only allows ephemeral messages in channels the app
+belongs to. Without the invite, those actions fail with `channel_not_found`.
 
 Take the 5 returned links and pin them in that channel. From there, it's just clicking the shortcut.
 Nobody else needs to install anything.
@@ -106,9 +106,13 @@ slack trigger delete --trigger-id <ID> --app <APP_ID>
 ## Common issues
 
 - **`get_status failed: chat.postEphemeral failed: channel_not_found`**: the app isn't a member of
-  the channel. Run `/invite @open-dibs-on-stuff` there. Same goes for `leave_queue` and for the
-  Reserve notices sent to whoever already holds the resource or is already on its waitlist, which
-  are ephemeral. The rest works without the invite because it posts regular messages.
+  the channel. Run `/invite @open-dibs-on-stuff` there. Same goes for `leave_queue`, for the
+  expiration reminders, and for the Reserve notices sent to whoever already holds the resource or is
+  already on its waitlist, which are ephemeral. The rest works without the invite because it posts
+  regular messages.
+- **`tick failed: chat.postEphemeral failed: user_not_in_channel`**: the reservation owner left the
+  channel, so Slack won't deliver the ephemeral reminder to them. The reservation doesn't get stuck:
+  the tick reschedules before sending the reminder, so auto-expiration keeps working.
 - **`slack: command not found`**: install the Slack CLI. Linux/macOS:
   `curl -fsSL
   https://downloads.slack-edge.com/slack-cli/install.sh | bash`. Windows (PowerShell):

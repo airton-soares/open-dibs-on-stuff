@@ -70,9 +70,12 @@ Key modules in `functions/internals/`:
 Each reservation schedules a `once` trigger via `scheduleTick`. When it fires, the `tick` workflow
 calls `decideTick()` in `domain.ts`, which picks between `stale` (the token no longer matches, so
 ignore it), `expire` (expire the reservation and promote the next person in the waitlist through
-`promote.ts`), or `remind` (post a reminder and reschedule the next tick, 60/30/10 minutes before
-the end). The `token` field on each `Reservation` exists specifically to invalidate old triggers
-once the state changes, such as after an extend or a release.
+`promote.ts`), or `remind` (reschedule the next tick and then post a reminder, 60/30/10 minutes
+before the end). Reminders go out as ephemeral messages to the owner only, and the reschedule
+happens _before_ the post on purpose: `chat.postEphemeral` fails when the owner has left the
+channel, and throwing before `scheduleTick` would leave the reservation with no next tick, so it
+would never expire on its own. The `token` field on each `Reservation` exists specifically to
+invalidate old triggers once the state changes, such as after an extend or a release.
 
 Resource identification: `service-suffix`, where suffix is one of `dev`, `stg`, or `prod`, mapped
 through `ENV_SHORT` in `domain.ts` (e.g. `cards-stg`, `billing-prod`).

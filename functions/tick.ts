@@ -8,7 +8,7 @@ import {
 import { cancelTrigger, scheduleTick } from "./internals/scheduling.ts";
 import { promoteNext } from "./internals/promote.ts";
 import { expiredMsg, reminderMsg } from "./internals/messages.ts";
-import { assertOk } from "./internals/slack_api.ts";
+import { assertOk, postEphemeral } from "./internals/slack_api.ts";
 import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
 
 export const TickDefinition = DefineFunction({
@@ -73,8 +73,10 @@ export async function handleTick(
     return { status: `${inputs.resource} expirado` };
   }
 
+  // O lembrete vai depois de reagendar de proposito: e uma mensagem efemera, que falha se o dono
+  // saiu do canal, e um throw antes do scheduleTick deixaria a reserva sem proximo tick, ou seja,
+  // sem expiracao automatica.
   const r = reservation!;
-  for (const marker of decision.markers) await post(reminderMsg(r, marker));
   r.reminders_sent = decision.remindersSentAfter;
   r.pending_trigger_id = await scheduleTick(client, {
     resource: inputs.resource,
@@ -84,6 +86,13 @@ export async function handleTick(
     delaySec: decision.nextDelaySec,
   });
   await putReservation(client, r);
+  for (const marker of decision.markers) {
+    await postEphemeral(client, {
+      channel: inputs.channel,
+      user: r.owner,
+      text: reminderMsg(r, marker),
+    });
+  }
   return { status: `${inputs.resource} lembrete(s): ${decision.markers.join(",")}` };
 }
 

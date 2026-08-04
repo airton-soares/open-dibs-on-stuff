@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
-import { assertEquals, assertStringIncludes } from "@std/assert";
+import { assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
 import { handleTick } from "./tick.ts";
 import { endOfBusinessDaySec } from "./internals/time.ts";
 
@@ -7,6 +7,7 @@ const config = { tz: "America/Sao_Paulo", businessEndHour: 18 };
 
 function client(existing: any, queue: any[] = []) {
   const posts: string[] = [];
+  const ephemeral: any[] = [];
   const puts: any[] = [];
   const deletes: string[] = [];
   const created: any[] = [];
@@ -43,9 +44,13 @@ function client(existing: any, queue: any[] = []) {
         posts.push(a.text);
         return Promise.resolve({ ok: true });
       },
+      postEphemeral: (a: any) => {
+        ephemeral.push(a);
+        return Promise.resolve({ ok: true });
+      },
     },
   };
-  return { c, posts, puts, deletes, created };
+  return { c, posts, ephemeral, puts, deletes, created };
 }
 
 function res(over: any = {}) {
@@ -100,13 +105,33 @@ Deno.test("promocao no tick usa o env do contexto quando config nao e informado"
   assertEquals(puts[0].expires_at, endOfBusinessDaySec(100, "America/New_York", 20));
 });
 
-Deno.test("tick envia lembrete e reagenda", async () => {
-  const { c, posts, puts, created } = client(res({ expires_at: 7200 }));
+Deno.test("tick envia lembrete so para o dono e reagenda", async () => {
+  const { c, posts, ephemeral, puts, created } = client(res({ expires_at: 7200 }));
   await handleTick(c as any, { resource: "cards-stg", token: "tok", channel: "C1" }, {
     nowSec: 7200 - 30 * 60,
     config,
   });
-  assertStringIncludes(posts[0], "expira em");
+  assertEquals(posts.length, 0);
+  assertEquals(ephemeral.length, 2);
+  assertEquals(ephemeral.map((e: any) => e.channel), ["C1", "C1"]);
+  assertEquals(ephemeral.map((e: any) => e.user), ["U1", "U1"]);
+  assertStringIncludes(ephemeral[0].text, "expira em");
   assertEquals(puts[0].reminders_sent.includes(30), true);
   assertEquals(created.length, 1);
+});
+
+Deno.test("reagenda o tick antes do lembrete, entao o dono fora do canal nao trava a reserva", async () => {
+  const { c, puts, created } = client(res({ expires_at: 7200 }));
+  c.chat.postEphemeral = () => Promise.resolve({ ok: false, error: "user_not_in_channel" } as any);
+  await assertRejects(
+    () =>
+      handleTick(c as any, { resource: "cards-stg", token: "tok", channel: "C1" }, {
+        nowSec: 7200 - 30 * 60,
+        config,
+      }),
+    Error,
+    "user_not_in_channel",
+  );
+  assertEquals(created.length, 1);
+  assertEquals(puts[0].reminders_sent.includes(30), true);
 });

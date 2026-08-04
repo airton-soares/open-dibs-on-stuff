@@ -1,4 +1,4 @@
-import { assertStringIncludes } from "@std/assert";
+import { assertEquals, assertStringIncludes } from "@std/assert";
 import {
   alreadyOwnerMsg,
   alreadyQueuedMsg,
@@ -62,10 +62,11 @@ Deno.test("notInQueueMsg avisa que a pessoa nao esta na fila", () => {
   assertStringIncludes(notInQueueMsg("cards-stg"), "cards-stg");
 });
 
-Deno.test("reminderMsg cita minutos restantes e como estender", () => {
+Deno.test("reminderMsg cita minutos restantes sem mencionar o dono", () => {
   const m = reminderMsg(res(), 10);
   assertStringIncludes(m, "10");
-  assertStringIncludes(m, "<@U1>");
+  assertStringIncludes(m, "Sua reserva");
+  assertEquals(m.includes("<@U1>"), false);
 });
 
 Deno.test("statusMsg lista reservas e diz quando nao ha nada", () => {
