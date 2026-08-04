@@ -98,6 +98,16 @@ export function notFoundMsg(resource: string, locale: Locale = LOCALE): string {
   return t("msg.notFound", { resource }, locale);
 }
 
+function queueLine(entries: WaitlistEntry[], locale: Locale): string {
+  if (entries.length === 0) return t("msg.status.queue.empty", {}, locale);
+  const users = entries
+    .slice()
+    .sort((a, b) => a.requested_at - b.requested_at)
+    .map((e, i) => t("msg.status.queue.entry", { position: i + 1, user: e.user }, locale))
+    .join(" · ");
+  return t("msg.status.queue", { count: entries.length, users }, locale);
+}
+
 export function statusMsg(
   reservations: Reservation[],
   queues: Record<string, WaitlistEntry[]>,
@@ -107,17 +117,13 @@ export function statusMsg(
   const lines = reservations
     .slice()
     .sort((a, b) => a.resource.localeCompare(b.resource))
-    .map((r) => {
-      const q = queues[r.resource] ?? [];
-      const queue = q.length
-        ? t("msg.status.queue", { users: q.map((e) => `<@${e.user}>`).join(", ") }, locale)
-        : "";
-      return t("msg.status.line", {
+    .map((r) =>
+      t("msg.status.line", {
         resource: r.resource,
         owner: r.owner,
         when: when(r.expires_at),
-        queue,
-      }, locale);
-    });
+        queue: queueLine(queues[r.resource] ?? [], locale),
+      }, locale)
+    );
   return `${t("msg.status.header", {}, locale)}\n${lines.join("\n")}`;
 }

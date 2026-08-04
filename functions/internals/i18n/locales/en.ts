@@ -62,5 +62,7 @@ export const en: Catalog = {
   "msg.status.empty": ":white_check_mark: No resource reserved right now.",
   "msg.status.header": ":clipboard: *Active reservations*",
   "msg.status.line": "- *{resource}*: <@{owner}> until {when}{queue}",
-  "msg.status.queue": " | queue: {users}",
+  "msg.status.queue": "\n   :busts_in_silhouette: queue ({count}): {users}",
+  "msg.status.queue.empty": "\n   :busts_in_silhouette: empty queue",
+  "msg.status.queue.entry": "{position}. <@{user}>",
 };

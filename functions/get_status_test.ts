@@ -52,14 +52,23 @@ Deno.test("status responde mesmo sem nenhum recurso reservado", async () => {
   assertStringIncludes(out.status, "0 reservas");
 });
 
-Deno.test("status mostra a fila de cada recurso", async () => {
+Deno.test("status mostra quantas e quais pessoas estao na fila de cada recurso", async () => {
   const { c, ephemeral } = client(
     [{ resource: "cards-stg", owner: "U1", expires_at: 7200 }],
-    [{ id: "w1", resource: "cards-stg", user: "U2", requested_at: 10 }],
+    [
+      { id: "w2", resource: "cards-stg", user: "U3", requested_at: 20 },
+      { id: "w1", resource: "cards-stg", user: "U2", requested_at: 10 },
+    ],
   );
   await handleGetStatus(c as any, { channel: "C1", user: "U9" });
-  assertStringIncludes(ephemeral[0].text, "fila");
-  assertStringIncludes(ephemeral[0].text, "U2");
+  assertStringIncludes(ephemeral[0].text, "fila (2)");
+  assertStringIncludes(ephemeral[0].text, "1. <@U2> · 2. <@U3>");
+});
+
+Deno.test("status diz que a fila esta vazia quando ninguem espera o recurso", async () => {
+  const { c, ephemeral } = client([{ resource: "cards-stg", owner: "U1", expires_at: 7200 }]);
+  await handleGetStatus(c as any, { channel: "C1", user: "U9" });
+  assertStringIncludes(ephemeral[0].text, "fila vazia");
 });
 
 Deno.test("status falha alto quando a API recusa a mensagem", async () => {

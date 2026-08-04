@@ -10,7 +10,11 @@ import {
   reservedMsg,
   statusMsg,
 } from "./messages.ts";
-import type { Reservation } from "./types.ts";
+import type { Reservation, WaitlistEntry } from "./types.ts";
+
+function entry(user: string, requested_at: number): WaitlistEntry {
+  return { id: `w-${user}`, resource: "cards-stg", user, requested_at };
+}
 
 function res(over: Partial<Reservation> = {}): Reservation {
   return {
@@ -74,11 +78,42 @@ Deno.test("statusMsg lista reservas e diz quando nao ha nada", () => {
   assertStringIncludes(statusMsg([res()], {}), "cards-stg");
 });
 
+Deno.test("statusMsg mostra o tamanho da fila e quem esta nela, na ordem de chegada", () => {
+  const m = statusMsg([res()], {
+    "cards-stg": [entry("U3", 20), entry("U2", 10), entry("U4", 30)],
+  });
+  assertStringIncludes(m, "fila (3)");
+  assertStringIncludes(m, "1. <@U2> · 2. <@U3> · 3. <@U4>");
+});
+
+Deno.test("statusMsg avisa quando o recurso reservado nao tem ninguem na fila", () => {
+  assertStringIncludes(statusMsg([res()], { "cards-stg": [] }), "fila vazia");
+  assertStringIncludes(statusMsg([res()], {}), "fila vazia");
+});
+
+Deno.test("statusMsg mostra a fila de cada recurso separadamente", () => {
+  const m = statusMsg(
+    [res(), res({ resource: "billing-prod", owner: "U9" })],
+    {
+      "cards-stg": [entry("U2", 10)],
+      "billing-prod": [entry("U5", 5), entry("U6", 6)],
+    },
+  );
+  assertStringIncludes(m, "*billing-prod*: <@U9>");
+  assertStringIncludes(m, "fila (2): 1. <@U5> · 2. <@U6>");
+  assertStringIncludes(m, "fila (1): 1. <@U2>");
+});
+
 Deno.test("as mensagens saem no idioma pedido", () => {
   assertStringIncludes(enqueuedMsg("cards-stg", "U2", 1, 2, "en"), "joined the queue");
   assertStringIncludes(leftQueueMsg("cards-stg", "en"), "You left the queue");
   assertStringIncludes(alreadyOwnerMsg("cards-stg", "en"), "You already hold");
   assertStringIncludes(statusMsg([res()], {}, "en"), "Active reservations");
+  assertStringIncludes(statusMsg([res()], {}, "en"), "empty queue");
+  assertStringIncludes(
+    statusMsg([res()], { "cards-stg": [entry("U2", 10)] }, "en"),
+    "queue (1): 1. <@U2>",
+  );
   assertStringIncludes(reminderMsg(res(), 10, "en"), "expires in 10 min");
 });
 
