@@ -8,6 +8,7 @@ import {
 import { cancelTrigger, scheduleTick } from "./internals/scheduling.ts";
 import { promoteNext } from "./internals/promote.ts";
 import { expiredMsg, reminderMsg } from "./internals/messages.ts";
+import { assertOk } from "./internals/slack_api.ts";
 import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
 
 export const TickDefinition = DefineFunction({
@@ -43,7 +44,10 @@ export async function handleTick(
   const nowSec = opts?.nowSec ?? Math.floor(Date.now() / 1000);
   const genId = opts?.genId ?? (() => crypto.randomUUID());
   const config = opts?.config ?? loadConfig(opts?.env);
-  const post = (text: string) => client.chat.postMessage({ channel: inputs.channel, text });
+  const post = async (text: string) => {
+    const res = await client.chat.postMessage({ channel: inputs.channel, text });
+    assertOk(res, "chat.postMessage");
+  };
 
   const reservation = await getReservation(client, inputs.resource);
   const decision = decideTick(reservation, inputs.token, nowSec);

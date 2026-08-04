@@ -4,6 +4,7 @@ import { deleteReservation, getReservation } from "./internals/reservations_repo
 import { cancelTrigger } from "./internals/scheduling.ts";
 import { promoteNext } from "./internals/promote.ts";
 import { notFoundMsg, notOwnerMsg, releasedMsg } from "./internals/messages.ts";
+import { assertOk } from "./internals/slack_api.ts";
 import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
 
 export const ReleaseReservationDefinition = DefineFunction({
@@ -42,7 +43,10 @@ export async function handleReleaseReservation(
   const genId = opts?.genId ?? (() => crypto.randomUUID());
   const config = opts?.config ?? loadConfig(opts?.env);
   const resource = resourceKey(inputs.service, inputs.environment);
-  const post = (text: string) => client.chat.postMessage({ channel: inputs.channel, text });
+  const post = async (text: string) => {
+    const res = await client.chat.postMessage({ channel: inputs.channel, text });
+    assertOk(res, "chat.postMessage");
+  };
 
   const reservation = await getReservation(client, resource);
   if (!reservation) {

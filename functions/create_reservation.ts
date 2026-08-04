@@ -4,6 +4,7 @@ import { getReservation, putReservation } from "./internals/reservations_repo.ts
 import { enqueue, queueFor } from "./internals/waitlist_repo.ts";
 import { scheduleTick } from "./internals/scheduling.ts";
 import { enqueuedMsg, reservedMsg } from "./internals/messages.ts";
+import { assertOk } from "./internals/slack_api.ts";
 import { type DibsConfig, type EnvVars, loadConfig } from "./internals/config.ts";
 
 export const CreateReservationDefinition = DefineFunction({
@@ -46,7 +47,10 @@ export async function handleCreateReservation(
   const genId = opts?.genId ?? (() => crypto.randomUUID());
   const config = opts?.config ?? loadConfig(opts?.env);
   const resource = resourceKey(inputs.service, inputs.environment);
-  const post = (text: string) => client.chat.postMessage({ channel: inputs.channel, text });
+  const post = async (text: string) => {
+    const res = await client.chat.postMessage({ channel: inputs.channel, text });
+    assertOk(res, "chat.postMessage");
+  };
 
   const existing = await getReservation(client, resource);
   if (existing) {
