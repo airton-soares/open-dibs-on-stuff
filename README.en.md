@@ -114,7 +114,8 @@ functions/             # custom functions (thin shells) + co-located tests
   internals/           # pure domain core + IO (tested without network)
 workflows/             # reserve, release, extend, status, tick
 triggers/              # link triggers for the shortcuts
-assets/icon.png         # app icon
+assets/icon.png        # app icon (referenced by the manifest)
+assets/icon.svg        # vector source for the icon
 ```
 
 ## Architecture

@@ -112,7 +112,8 @@ functions/             # custom functions (cascas finas) + testes co-localizados
   internals/           # nucleo puro de dominio + IO (testado sem rede)
 workflows/             # reserve, release, extend, status, tick
 triggers/              # link triggers dos atalhos
-assets/icon.png        # icone do app
+assets/icon.png        # icone do app (usado pelo manifest)
+assets/icon.svg        # fonte vetorial do icone
 ```
 
 ## Arquitetura
