@@ -34,7 +34,7 @@ cd open-dibs-on-stuff
 ```
 
 The script checks prerequisites, opens Slack login in your browser, deploys the app, and creates the
-4 shortcuts (Reserve, Release, Extend, Status), printing the links at the end.
+5 shortcuts (Reserve, Release, Extend, Leave queue, Status), printing the links at the end.
 
 Re-run it as often as you like: it skips the login if you're already authenticated and **updates**
 the existing shortcuts instead of creating new ones, so links already pinned in the channel keep
@@ -53,6 +53,7 @@ slack deploy
 slack trigger create --trigger-def triggers/reserve_link.ts
 slack trigger create --trigger-def triggers/release_link.ts
 slack trigger create --trigger-def triggers/extend_link.ts
+slack trigger create --trigger-def triggers/leave_queue_link.ts
 slack trigger create --trigger-def triggers/status_link.ts
 ```
 
@@ -66,11 +67,11 @@ Invite the app to the channel your team will use:
 /invite @open-dibs-on-stuff
 ```
 
-This is required: **Status** replies with an ephemeral message (only the person who clicked sees
-it), and Slack only allows ephemeral messages in channels the app belongs to. Without the invite,
-Status fails with `channel_not_found`.
+This is required: **Status** and **Leave queue** reply with an ephemeral message (only the person
+who clicked sees it), and Slack only allows ephemeral messages in channels the app belongs to.
+Without the invite, those actions fail with `channel_not_found`.
 
-Take the 4 returned links and pin them in that channel. From there, it's just clicking the shortcut.
+Take the 5 returned links and pin them in that channel. From there, it's just clicking the shortcut.
 Nobody else needs to install anything.
 
 Optional: timezone and end-of-business-hour have defaults (`America/Sao_Paulo`, 18:00). To change
@@ -105,8 +106,9 @@ slack trigger delete --trigger-id <ID> --app <APP_ID>
 ## Common issues
 
 - **`get_status failed: chat.postEphemeral failed: channel_not_found`**: the app isn't a member of
-  the channel. Run `/invite @open-dibs-on-stuff` there. The other actions work without the invite
-  because they post regular messages; only Status needs it, being ephemeral.
+  the channel. Run `/invite @open-dibs-on-stuff` there. Same goes for `leave_queue` and for the
+  Reserve notices sent to whoever already holds the resource or is already on its waitlist, which
+  are ephemeral. The rest works without the invite because it posts regular messages.
 - **`slack: command not found`**: install the Slack CLI. Linux/macOS:
   `curl -fsSL
   https://downloads.slack-edge.com/slack-cli/install.sh | bash`. Windows (PowerShell):
@@ -122,6 +124,6 @@ slack trigger delete --trigger-id <ID> --app <APP_ID>
   permanent, add `export DENO_TLS_CA_STORE=system` to your shell (`~/.zshrc`/`~/.bashrc`).
 - **Workspace doesn't have Run on Slack**: ask your workspace admin to enable it, or use a sandbox
   from the [Slack Developer Program](https://api.slack.com/developer-program) to try it for free.
-- **App stopped working after a code change**: run `slack deploy` again and recreate the 4 triggers
+- **App stopped working after a code change**: run `slack deploy` again and recreate the 5 triggers
   (commands above). The link changes every time you run `trigger create`, so you'll need to re-pin
   it in the channel.

@@ -19,10 +19,14 @@ o código (Deno) e o banco (Datastore), sem servidor nem custo de nuvem próprio
 A interação é por **link triggers** (atalhos fixados no canal) que abrem um formulário:
 
 - **Reservar**: serviço + ambiente + duração (30m, 1h, 2h, 4h, até o fim do expediente) + nota
-  opcional. Se o recurso estiver livre, cria a reserva; se estiver ocupado, coloca você na fila.
+  opcional. Se o recurso estiver livre, cria a reserva; se estiver ocupado, coloca você na fila e
+  diz sua posição. Quem já é dono do recurso ou já está na fila dele não entra na fila de novo — só
+  recebe um aviso efêmero.
 - **Liberar**: serviço + ambiente. Só o dono libera. Ao liberar, o próximo da fila é promovido
   automaticamente.
 - **Estender**: serviço + ambiente + tempo extra (+30m, +1h, +2h). Só o dono.
+- **Sair da fila**: serviço + ambiente. Tira você da fila daquele recurso; a confirmação é efêmera
+  (só você vê). Se você não estiver na fila, o app só avisa isso.
 - **Status**: lista o que está reservado, por quem, até quando, e as filas.
 
 O recurso é identificado por `serviço-sufixo`, onde o sufixo é `dev`, `stg` ou `prod` (ex:
@@ -78,6 +82,7 @@ app):
 slack trigger create --trigger-def triggers/reserve_link.ts
 slack trigger create --trigger-def triggers/release_link.ts
 slack trigger create --trigger-def triggers/extend_link.ts
+slack trigger create --trigger-def triggers/leave_queue_link.ts
 slack trigger create --trigger-def triggers/status_link.ts
 ```
 

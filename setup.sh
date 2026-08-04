@@ -107,7 +107,7 @@ echo "== Syncing link triggers =="
 echo "Existing shortcuts are updated in place, so their links stay valid."
 echo
 
-TRIGGER_FILES="reserve_link.ts release_link.ts extend_link.ts status_link.ts"
+TRIGGER_FILES="reserve_link.ts release_link.ts extend_link.ts leave_queue_link.ts status_link.ts"
 
 trigger_title() {
   sed -n 's/^[[:space:]]*name:[[:space:]]*"\(.*\)",[[:space:]]*$/\1/p' "triggers/$1" | head -n1
@@ -180,13 +180,13 @@ trigger_list || echo "(could not list triggers; run: slack trigger list --app $A
 cat <<EOF
 == Done ==
 
-Invite the app to your team's channel, then pin the 4 links above there:
+Invite the app to your team's channel, then pin the 5 links above there:
 
   /invite @open-dibs-on-stuff
 
-The invite is required: Status replies with an ephemeral message, which Slack only allows in
-channels the app belongs to. Anyone in the workspace can then use the links, no further setup
-needed on their end. Re-running this script keeps those links valid.
+The invite is required: Status and Leave queue reply with an ephemeral message, which Slack only
+allows in channels the app belongs to. Anyone in the workspace can then use the links, no further
+setup needed on their end. Re-running this script keeps those links valid.
 
 To ship a new version later: pull the latest code and run ./setup.sh again.
 

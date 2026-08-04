@@ -34,6 +34,14 @@ export function alreadyQueuedMsg(resource: string, position: number, total: numb
   }).`;
 }
 
+export function leftQueueMsg(resource: string): string {
+  return `:door: Você saiu da fila de *${resource}*.`;
+}
+
+export function notInQueueMsg(resource: string): string {
+  return `:grey_question: Você não está na fila de *${resource}*.`;
+}
+
 export function releasedMsg(resource: string, user: string): string {
   return `:unlock: <@${user}> liberou *${resource}*.`;
 }

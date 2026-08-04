@@ -84,7 +84,7 @@ Write-Host "== Syncing link triggers =="
 Write-Host "Existing shortcuts are updated in place, so their links stay valid."
 Write-Host ""
 
-$triggerFiles = @("reserve_link.ts", "release_link.ts", "extend_link.ts", "status_link.ts")
+$triggerFiles = @("reserve_link.ts", "release_link.ts", "extend_link.ts", "leave_queue_link.ts", "status_link.ts")
 
 function Get-TriggerTitle([string]$file) {
     $match = Select-String -Path "triggers/$file" -Pattern '^\s*name:\s*"(.*)",\s*$' | Select-Object -First 1
@@ -159,13 +159,13 @@ catch {
 Write-Host ""
 Write-Host "== Done =="
 Write-Host ""
-Write-Host "Invite the app to your team's channel, then pin the 4 links above there:"
+Write-Host "Invite the app to your team's channel, then pin the 5 links above there:"
 Write-Host ""
 Write-Host "  /invite @open-dibs-on-stuff"
 Write-Host ""
-Write-Host "The invite is required: Status replies with an ephemeral message, which Slack only allows in"
-Write-Host "channels the app belongs to. Anyone in the workspace can then use the links, no further setup"
-Write-Host "needed on their end. Re-running this script keeps those links valid."
+Write-Host "The invite is required: Status and Leave queue reply with an ephemeral message, which Slack only"
+Write-Host "allows in channels the app belongs to. Anyone in the workspace can then use the links, no further"
+Write-Host "setup needed on their end. Re-running this script keeps those links valid."
 Write-Host ""
 Write-Host "To ship a new version later: pull the latest code and run .\setup.ps1 again."
 Write-Host ""

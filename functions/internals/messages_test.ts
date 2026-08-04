@@ -3,6 +3,8 @@ import {
   alreadyOwnerMsg,
   alreadyQueuedMsg,
   enqueuedMsg,
+  leftQueueMsg,
+  notInQueueMsg,
   notOwnerMsg,
   reminderMsg,
   reservedMsg,
@@ -48,6 +50,16 @@ Deno.test("alreadyQueuedMsg repete a posicao na fila", () => {
   const m = alreadyQueuedMsg("cards-stg", 1, 2);
   assertStringIncludes(m, "já está na fila");
   assertStringIncludes(m, "sua posição é a 1 em uma fila de tamanho 2");
+});
+
+Deno.test("leftQueueMsg confirma a saida da fila", () => {
+  assertStringIncludes(leftQueueMsg("cards-stg"), "saiu da fila");
+  assertStringIncludes(leftQueueMsg("cards-stg"), "cards-stg");
+});
+
+Deno.test("notInQueueMsg avisa que a pessoa nao esta na fila", () => {
+  assertStringIncludes(notInQueueMsg("cards-stg"), "não está na fila");
+  assertStringIncludes(notInQueueMsg("cards-stg"), "cards-stg");
 });
 
 Deno.test("reminderMsg cita minutos restantes e como estender", () => {

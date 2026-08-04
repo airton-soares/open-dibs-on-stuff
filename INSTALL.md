@@ -34,8 +34,8 @@ cd open-dibs-on-stuff
 .\setup.ps1
 ```
 
-O script confere os pré-requisitos, abre o login do Slack no navegador, faz o deploy e cria os 4
-atalhos (Reservar, Liberar, Estender, Status), imprimindo os links no final.
+O script confere os pré-requisitos, abre o login do Slack no navegador, faz o deploy e cria os 5
+atalhos (Reservar, Liberar, Estender, Sair da fila, Status), imprimindo os links no final.
 
 Pode rodar de novo à vontade: ele pula o login se você já estiver autenticado e **atualiza** os
 atalhos existentes em vez de criar novos, então os links já fixados no canal continuam valendo.
@@ -54,6 +54,7 @@ slack deploy
 slack trigger create --trigger-def triggers/reserve_link.ts
 slack trigger create --trigger-def triggers/release_link.ts
 slack trigger create --trigger-def triggers/extend_link.ts
+slack trigger create --trigger-def triggers/leave_queue_link.ts
 slack trigger create --trigger-def triggers/status_link.ts
 ```
 
@@ -67,11 +68,11 @@ Convide o app no canal onde o time vai usar:
 /invite @open-dibs-on-stuff
 ```
 
-Isso é obrigatório: o **Status** responde por mensagem efêmera (só quem clicou enxerga), e o Slack
-só permite mensagem efêmera em canal do qual o app é membro. Sem o convite, o Status falha com
-`channel_not_found`.
+Isso é obrigatório: o **Status** e o **Sair da fila** respondem por mensagem efêmera (só quem clicou
+enxerga), e o Slack só permite mensagem efêmera em canal do qual o app é membro. Sem o convite,
+essas ações falham com `channel_not_found`.
 
-Pegue os 4 links retornados e fixe (pin) nesse canal. A partir daí, é só clicar no atalho. Ninguém
+Pegue os 5 links retornados e fixe (pin) nesse canal. A partir daí, é só clicar no atalho. Ninguém
 mais precisa instalar nada.
 
 Opcional: fuso horário e hora de fim de expediente têm default (`America/Sao_Paulo`, 18h). Pra
@@ -105,8 +106,9 @@ slack trigger delete --trigger-id <ID> --app <APP_ID>
 ## Problemas comuns
 
 - **`get_status falhou: chat.postEphemeral falhou: channel_not_found`**: o app não é membro do
-  canal. Rode `/invite @open-dibs-on-stuff` nele. As outras ações funcionam sem o convite porque
-  postam mensagem normal; só o Status precisa, por ser efêmero.
+  canal. Rode `/invite @open-dibs-on-stuff` nele. Vale também para o `leave_queue` e para os avisos
+  do Reservar de quem já é dono ou já está na fila, que são efêmeros. O resto funciona sem o convite
+  porque posta mensagem normal.
 - **`slack: command not found`**: instale o Slack CLI. Linux/macOS:
   `curl -fsSL
   https://downloads.slack-edge.com/slack-cli/install.sh | bash`. Windows (PowerShell):
@@ -122,5 +124,5 @@ slack trigger delete --trigger-id <ID> --app <APP_ID>
   permanente, adicione `export DENO_TLS_CA_STORE=system` ao seu shell (`~/.zshrc`/`~/.bashrc`).
 - **Workspace sem Run on Slack**: peça pro admin do workspace habilitar, ou use um sandbox do
   [Slack Developer Program](https://api.slack.com/developer-program) pra testar sem custo.
-- **App parou de funcionar depois de mudar código**: rode `slack deploy` de novo e recrie os 4
+- **App parou de funcionar depois de mudar código**: rode `slack deploy` de novo e recrie os 5
   triggers (os comandos acima). O link muda a cada `trigger create`, então precisa refixar no canal.

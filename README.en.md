@@ -20,10 +20,13 @@ Interaction happens through **link triggers** (shortcuts pinned in the channel) 
 
 - **Reserve**: service + environment + duration (30m, 1h, 2h, 4h, until end of business day) +
   optional note. If the resource is free, creates the reservation; if it's taken, puts you on the
-  waitlist.
+  waitlist and tells you your position. Whoever already holds the resource or is already on its
+  waitlist doesn't get queued again — they just get an ephemeral notice.
 - **Release**: service + environment. Only the owner can release. On release, the next person in the
   waitlist is automatically promoted.
 - **Extend**: service + environment + extra time (+30m, +1h, +2h). Only the owner.
+- **Leave queue**: service + environment. Takes you off that resource's waitlist; the confirmation
+  is ephemeral (only you see it). If you're not on the waitlist, the app just says so.
 - **Status**: lists what's reserved, by whom, until when, and the waitlists.
 
 The resource is identified by `service-suffix`, where the suffix is `dev`, `stg`, or `prod` (e.g.
@@ -80,6 +83,7 @@ will use the app in):
 slack trigger create --trigger-def triggers/reserve_link.ts
 slack trigger create --trigger-def triggers/release_link.ts
 slack trigger create --trigger-def triggers/extend_link.ts
+slack trigger create --trigger-def triggers/leave_queue_link.ts
 slack trigger create --trigger-def triggers/status_link.ts
 ```
 

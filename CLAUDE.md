@@ -9,7 +9,7 @@ Open source Slack app (Deno, running entirely on Run on Slack/ROSI, no server or
 own) for reserving shared resources: services in `development`, `staging`, or `production`
 environments, with a waitlist, reminders, and auto-expiration. Works for any development team or IT
 group that needs to coordinate access to shared environments. Interaction happens through link
-triggers pinned in the channel (Reserve, Release, Extend, Status).
+triggers pinned in the channel (Reserve, Release, Extend, Leave queue, Status).
 
 ## Commands
 
